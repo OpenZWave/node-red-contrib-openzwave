@@ -1,0 +1,28 @@
+<script type="text/javascript">
+    RED.nodes.registerType('zwave-controller', {
+        category: 'config',
+        defaults: {
+            port:           {value:"/dev/ttyUSB0",required:true},
+            driverattempts: {value:3,	required:true,validate:RED.validators.number()},
+            pollinterval:   {value:500, required:true,validate:RED.validators.number()}
+        },
+        label: function() {
+            return "OpenZWave: "+this.port;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="zwave-controller">
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="icon-bookmark"></i> Port</label>
+        <input type="text" id="node-config-input-port">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-driverattempts"><i class="icon-bookmark"></i> Driver attempts</label>
+        <input type="text" id="node-config-input-driverattempts">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-pollinterval"><i class="icon-bookmark"></i> Poll interval</label>
+        <input type="text" id="node-config-input-pollinterval">
+    </div>
+</script>

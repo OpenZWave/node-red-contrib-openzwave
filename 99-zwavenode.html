@@ -1,0 +1,36 @@
+<script type="text/javascript">
+    RED.nodes.registerType('zwavenode',{
+        category: 'outputs',
+        color: '#a6bbcf',
+        defaults: {
+			name:        {value:""},
+			controller:  {value:"", type:"zwave-controller"},
+			nodeid:		 {value:2, required:true, validate:RED.validators.number()},
+        },
+        inputs:1,
+        outputs:1,
+        icon: "zwave.png",
+        label: function() {
+            return this.name||"zwave"+(this.nodeId||"");
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="zwavenode">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
+        <input type="text" id="node-input-name" placeholder="Entrance light switch">
+    </div>
+    <div class="form-row">
+        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+        <input type="text" id="node-input-controller">
+    </div>
+    <div class="form-row">
+        <label for="node-input-nodeid"><i class="icon-bookmark"></i> ZWave Node Id</label>
+        <input type="text" id="node-input-nodeid">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="zwavenode">
+    <p>A ZWave network node.</p>
+</script>
