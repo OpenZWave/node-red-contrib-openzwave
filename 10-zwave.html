@@ -1,0 +1,95 @@
+<script type="text/x-red" data-template-name="zwave-controller">
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="icon-bookmark"></i> Port</label>
+        <input type="text" id="node-config-input-port">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-driverattempts"><i class="icon-bookmark"></i> Driver attempts</label>
+        <input type="text" id="node-config-input-driverattempts">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-pollinterval"><i class="icon-bookmark"></i> Poll interval</label>
+        <input type="text" id="node-config-input-pollinterval">
+    </div>
+</script>
+
+<script type="text/x-red" data-template-name="zwave-node">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
+        <input type="text" id="node-input-name" placeholder="Entrance light switch">
+    </div>                  
+    <div class="form-row">
+        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+        <input type="text" id="node-input-controller">
+    </div>
+    <div class="form-row">
+        <label for="node-input-nodeid"><i class="icon-bookmark"></i> ZWave Node Id</label>
+        <input type="text" id="node-input-nodeid">
+    </div>
+    <div class="form-row">
+        <label for="node-input-cmdclass"><i class="icon-bookmark"></i> ZWave Command Class</label>
+        <select style="width: 90px" id="node-input-cmdclass"  value="37">
+        	<option value="37">COMMAND_CLASS_SWITCH_BINARY (switches/relays)</option>
+        	<option value="38">COMMAND_CLASS_SWITCH_MULTILEVEL (dimmers)</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-cmdidx"><i class="icon-bookmark"></i> ZWave Command Index</label>
+        <input type="text" id="node-input-cmdidx">
+    </div>
+</script>
+
+<script type="text/x-red" data-template-name="zwave">
+    <div class="form-row">
+        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+        <input type="text" id="node-input-controller">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="zwave-device">
+    <p><b>A node-red node for a specific ZWave device.</b><br/>See OpenZWave documentation on ValueIDs.</p>
+</script>
+
+<script type="text/x-red" data-help-name="zwave">
+    <p><b>A generic ZWave network function node.</b>Can be used to send arbitrary commands to the ZWave network and recieve notifications from it.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('zwave-controller', {
+        category:'config',
+        defaults: {
+            port: {value: "/dev/ttyUSB0", required:true},
+            driverattempts: {value: 3,	required:true, validate:RED.validators.number()},
+            pollinterval:   {value: 500, required:true, validate:RED.validators.number()}
+        },
+    });
+    RED.nodes.registerType('zwave-node', {
+        category:'function',
+        color: 'pink',
+        defaults: {
+			name:       {value:""},
+			controller: {value:"", type:"zwave-controller"},
+			nodeid:		{value:2, required:true, validate:RED.validators.number()},
+			cmdclass:	{value:37, required:true},
+			cmdidx:		{value:0, required:true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "zwave.png",
+        label: function() {
+            return this.name||"zwave"+(this.nodeId||"");
+        }
+    });
+    RED.nodes.registerType('zwave',{
+        category:'function',
+        color: 	'yellow',
+        defaults: {
+			name:        {value:""},
+			controller:  {value:"", type:"zwave-controller"},
+        },
+        inputs: 1,
+        outputs:1,
+        icon: "zwave.png",
+        label: function() { return (this.homeid || ""); }
+    });
+</script>
