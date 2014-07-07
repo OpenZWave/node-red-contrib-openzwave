@@ -184,9 +184,6 @@ module.exports = function(RED) {
 	// =========================
 		RED.nodes.createNode(this,config);
 		this.name = config.name;
-		this.nodeid = config.nodeid;
-		this.cmdclass = config.cmdclass;
-		this.cmdidx = config.cmdidx;
 		var node = this;
 		// set zwave node status initially as disconnected
 		this.status({fill:"red",shape:"ring",text:"disconnected"});
@@ -199,12 +196,18 @@ module.exports = function(RED) {
 			this.on("input", function(msg) {
 				console.log("ZWaveNode=>input(%j)", msg);
 				switch(true) {
+				case /setLevel/.test(msg.topic):
+					console.log('setting level %j', msg.payload);
+					zwaveController.zwave.setLevel(
+						msg.payload.nodeid, 
+						msg.payload.level
+					);
 				case /setValue/.test(msg.topic):				
 					console.log('setting value %j', msg.payload);
 					zwaveController.zwave.setValue(
 						msg.payload.nodeid, 
 						msg.payload.cmdclass, 
-						msg.payload.cmdindx, 
+						msg.payload.cmdidx, 
 						msg.payload.value
 					);
 					break;
@@ -213,7 +216,7 @@ module.exports = function(RED) {
 					zwaveController.zwave.switchOn(msg.payload); break;
 				case /switchOff/.test(msg.topic):
 					console.log('switching off %j', msg.payload);
-					zwaveController.zwave.switchOn(msg.payload); break;
+					zwaveController.zwave.switchOff(msg.payload); break;
 				};
 			});
 			this.on("close", function() {
@@ -259,9 +262,6 @@ module.exports = function(RED) {
 			// set zwave node status initially as disconnected
 			this.status({fill:"red",shape:"ring",text:"disconnected"});
 			/* =============== Node-Red events ================== */
-			this.on("input", function(msg) {
-				zwaveController.zwave.setValue(this.nodeid, this.cmdclass, this.cmdindx, msg.payload.value);
-			});
 			this.on("close", function() {
 		        zwaveController.zwave.disconnect();
 		    });
@@ -289,6 +289,9 @@ module.exports = function(RED) {
 	// =========================
 		RED.nodes.createNode(this, config);
 		this.name = config.name;
+		this.nodeid = config.nodeid;
+		this.cmdclass = config.cmdclass;
+		this.cmdidx = config.cmdidx;
 		//
 		var node = this;
 		var ctrl = getZWaveController(config);
@@ -300,7 +303,30 @@ module.exports = function(RED) {
 			this.status({fill:"red",shape:"ring",text:"disconnected"});
 			/* =============== Node-Red events ================== */
 			this.on("input", function(msg) {
-
+				console.log("ZWaveOut#input: %j", msg);
+				switch(true) {
+				case /setLevel/.test(msg.topic):
+					console.log('setting level %j', msg.payload);
+					zwaveController.zwave.setLevel(
+						this.nodeid, 
+						msg.payload
+					);
+				case /setValue/.test(msg.topic):				
+					console.log('setting value %j', msg.payload);
+					zwaveController.zwave.setValue(
+						this.nodeid, 
+						this.cmdclass, 
+						this.cmdidx, 
+						msg.payload
+					);
+					break;
+				case /switchOn/.test(msg.topic):
+					console.log('switching on %j', msg.payload);
+					zwaveController.zwave.switchOn(this.nodeid); break;
+				case /switchOff/.test(msg.topic):
+					console.log('switching off %j', msg.payload);
+					zwaveController.zwave.switchOff(this.nodeid); break;
+				};
 			});
 			this.on("close", function() {
 		        zwaveController.zwave.disconnect();

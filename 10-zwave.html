@@ -105,9 +105,6 @@
         defaults: {
 			name:       {value:""},
 			controller: {value:"", type:"zwave-controller"},
-			nodeid:		{value:2, required:true, validate:RED.validators.number()},
-			cmdclass:	{value:37, required:true},
-			cmdidx:		{value:0, required:true}
         },
         inputs:1,
         outputs:1,
@@ -120,8 +117,12 @@
         category:'input',
         color: 	'yellow',
         defaults: {
-			name:        {value:""},
-			controller:  {value:"", type:"zwave-controller"},
+			name:       {value:""},
+			controller: {value:"", type:"zwave-controller"},
+			nodeid:		{value:2, required:true, validate:RED.validators.number()},
+			cmdclass:	{value:37, required:true},
+			cmdidx:		{value:0, required:true}
+
         },
         inputs:0,
         outputs:1,
@@ -132,8 +133,11 @@
         category:'output',
         color: 	'yellow',
         defaults: {
-			name:        {value:""},
-			controller:  {value:"", type:"zwave-controller"},
+			name:       {value:""},
+			controller: {value:"", type:"zwave-controller"},
+			nodeid:		{value:2, required:true, validate:RED.validators.number()},
+			cmdclass:	{value:37, required:true},
+			cmdidx:		{value:0, required:true}
         },
         inputs:1,
         outputs:0,
