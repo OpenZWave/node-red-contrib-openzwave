@@ -11,4 +11,5 @@ OpenZWave nodes for node-red. Uses the OpenZWave binding for Node.JS (https://gi
 - 'Input nodes' can listen for value changes in the ZWave network so as to generate flow messages 
 - 'Output nodes' can be setup so you can send ZWave commands from flow messages
 
-
+Here's an example flow:
+![openzwave example](https://github.com/ekarak/node-red-contrib-openzwave/raw/master/node-red-openzwave.png)
