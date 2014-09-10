@@ -18,67 +18,90 @@
   
 */
 module.exports = function(RED) {
+
 	console.log("loading openzwave for node-red");
-    var OZW = require('openzwave');
+
+    var OpenZWave = require('openzwave');
 
     function ZWaveController(n) {
     	RED.nodes.createNode(this,n);
+    	this.name = n.port;
         this.port = n.port;
 		this.driverattempts = n.driverattempts;
 	    this.pollinterval = n.pollinterval;
-		this.zwave = new OZW(this.port, {
-        	logging: false,           // enable logging to OZW_Log.txt
-	        consoleoutput: false,     // copy logging to the console
+
+		// initialize OpenZWave
+		this.zwave = new OpenZWave(this.port, {
+        	logging: false,           // enable logging to OpenZWave_Log.txt
+	        consoleoutput: true,     // copy logging to the console
 	        saveconfig: true,        // write an XML network layout
 	        driverattempts: this.driverattempts,        // try this many times before giving up
 	        pollinterval: this.pollinterval,        // interval between polls in milliseconds
 	        suppressrefresh: true    // do not send updates if nothing changed
 		});
-		var zwave = this.zwave;
     	console.log("new ZWaveController: %s", n);
    	    var zwnodes = [];   	    
-   	    var nrNodeSubscriptions = {}; // 'event' => [node-red-node1_closure, ...]
+   	    var nrNodeSubscriptions = {}; // 'event' => [closure1, closure2...]
    	    
-   	    // the fun part begins:
-		function subscribe(nrNode, eventCallbacks) {
-			Object.keys(eventCallbacks).forEach(function (evt) {
-				var cb = eventCallbacks(evt);
-				if (!(evt in nrNodeSubscriptions)) {
-					nrNodeSubscriptions[evt] = [];
-				};
-				nrNodeSubscriptions[evt].push(cb);
-			});
+   	    // subscribe a Node-Red node to ZWave events
+		this.subscribe = function(nrNode, event, callback) {
+			if (!(event in nrNodeSubscriptions)) 		
+				nrNodeSubscriptions[event] = [];
+			nrNodeSubscriptions[event].push(callback);
 		}
-		
-   		function zwcallback(evtName, args) {
-			console.log("zwcallback(%s, %s)", evtName, args);
-			if (evtName in nrNodeSubscriptions) {
-				nrNodeSubscriptions[evt].forEach(
-					function(callback) {
-						console.log("calling %s", callback);
-						callback.apply(this, args);
-					});
+
+		// dispatch OpenZwave events onto all active Node-Red subscriptions
+   		function zwcallback(event, arghash) {
+			console.log("zwcallback(event: %s, args: %j)", event, arghash);
+			if (event in nrNodeSubscriptions) {
+				nrNodeSubscriptions[event].forEach(function(callback) {
+					console.log("calling event callback %s with args %j", event, arghash);
+					callback.apply(this, arghash);
+				});
 			}
 		}
 
+		// see openzwave/cpp/src/Notification.cpp
+		function notificationText(a) { 
+		  switch(a){
+			case 0: return "message complete";
+			case 1: return "timeout";
+			case 2: return "nop";
+			case 3: return "node awake";
+			case 4: return "node asleep";
+			case 5: return "node dead";
+			case 6: return "node alive";
+			default: return "unknown OZW notification: "+a;
+	      }
+		}
+
    	    /* =============== Node-Red events ================== */
+		//
 		this.on("close", function() {
             this.zwave.disconnect();
         });
+
+
    	    /* =============== OpenZWave events ================== */
-		zwave.on('driver ready', function(homeid) {
-			console.log('scanning homeid=0x%s...', homeid.toString(16));
-			zwcallback('driver ready', homeid);
+		//
+		this.zwave.on('driver ready', function(homeid) {
+			this.homeid = homeid;
+			var homeHex = homeid.toString(16);
+			this.name='0x'+ homeHex;
+			console.log('scanning homeid=0x%s...', homeHex);
+			zwcallback('driver ready', {homeid: homeid});
 		});
+
 		// 
-		zwave.on('driver failed', function() {
+		this.zwave.on('driver failed', function() {
 			console.log('failed to start driver');
-			zwcallback('driver failed');
+			zwcallback('driver failed', {});
 			zwave.disconnect();
 			// process.exit();
 		});
+
 		//
-		zwave.on('node added', function(nodeid) {
+		this.zwave.on('node added', function(nodeid) {
 			zwnodes[nodeid] = {
 				manufacturer: '',
 				manufacturerid: '',
@@ -91,58 +114,70 @@ module.exports = function(RED) {
 				classes: {},
 				ready: false,
 			};
-			zwcallback('node added', nodeid);
+			zwcallback('node added', {nodeid: nodeid});
 		});
 
-		zwave.on('value added', function(nodeid, comclass, value) {
-			// console.log('value added: %s', value)
+		//
+		this.zwave.on('value added', function(nodeid, comclass, valueId) {
 			if (!zwnodes[nodeid]['classes'][comclass])
 				zwnodes[nodeid]['classes'][comclass] = {};
-			zwnodes[nodeid]['classes'][comclass][value.index] = value;
-			//
-			zwcallback('value added', comclass, value);
+			if (!zwnodes[nodeid]['classes'][comclass][valueId.instance])
+				zwnodes[nodeid]['classes'][comclass][valueId.instance] = {};
+			// add to cache
+			zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index] = valueId;
+			// tell NR
+			zwcallback('value added', { 
+				nodeid: nodeid, cmdclass: comclass, cmdinstance: valueId.instance, cmdidx: valueId.index,
+				currState: valueId['value'], 
+			});
 		});
 
-		zwave.on('value changed', function(nodeid, comclass, value) {
+		//
+		this.zwave.on('value changed', function(nodeid, comclass, valueId) {
+			// valueId: OpenZWave ValueID (struct) - not just a boolean
+			var oldst;
 			if (zwnodes[nodeid]['ready']) {
-				var oldval = zwnodes[nodeid]['classes'][comclass][value.index]['value'];
-				console.log('node%d: changed: %d:%s:%s->%s', nodeid, comclass,
-				    value['label'],  oldval, value['value']); // new
+				oldst = zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index]['value'];
+				console.log('node%d: changed: %d:%s:%s->%s', nodeid, comclass, valueId['label'],  oldst, valueId['value']); // new
 			}
-			//
-			zwcallback('value changed', comclass, value);
+			// tell NR
+			zwcallback('value changed', { 
+				nodeid: nodeid, cmdclass: comclass, cmdinstance: valueId.instance, cmdidx: valueId.index,
+				oldState: oldst, currState: valueId['value'], 
+			});
 			// update cache
-			zwnodes[nodeid]['classes'][comclass][value.index] = value;
+			zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index] = valueId;
 		});
 
-		zwave.on('value removed', function(nodeid, comclass, index) {
+		//
+		this.zwave.on('value removed', function(nodeid, comclass, index) {
 			if (zwnodes[nodeid] &&
 				zwnodes[nodeid]['classes'] &&
 				zwnodes[nodeid]['classes'][comclass] &&
 				zwnodes[nodeid]['classes'][comclass][index]) {
 					delete zwnodes[nodeid]['classes'][comclass][index];
-					zwcallback('value deleted', nodeid, comclass, index);
+					zwcallback('value deleted', { 
+						nodeid: nodeid, cmdclass: comclass, cmdinstance: valueId.instance, cmdidx: valueId.index,
+						oldState: oldval,
+					});
 				}
 		});
 
-		zwave.on('node ready', function(nodeid, nodeinfo) {
-			zwnodes[nodeid]['manufacturer'] = nodeinfo.manufacturer;
-			zwnodes[nodeid]['manufacturerid'] = nodeinfo.manufacturerid;
-			zwnodes[nodeid]['product'] = nodeinfo.product;
-			zwnodes[nodeid]['producttype'] = nodeinfo.producttype;
-			zwnodes[nodeid]['productid'] = nodeinfo.productid;
-			zwnodes[nodeid]['type'] = nodeinfo.type;
-			zwnodes[nodeid]['name'] = nodeinfo.name;
-			zwnodes[nodeid]['loc'] = nodeinfo.loc;
+		//
+		this.zwave.on('node ready', function(nodeid, nodeinfo) {
+			zwnodes[nodeid]['manufacturer'] 	= nodeinfo.manufacturer;
+			zwnodes[nodeid]['manufacturerid'] 	= nodeinfo.manufacturerid;
+			zwnodes[nodeid]['product'] 			= nodeinfo.product;
+			zwnodes[nodeid]['producttype'] 		= nodeinfo.producttype;
+			zwnodes[nodeid]['productid'] 		= nodeinfo.productid;
+			zwnodes[nodeid]['type'] 			= nodeinfo.type;
+			zwnodes[nodeid]['name'] 			= nodeinfo.name;
+			zwnodes[nodeid]['loc'] 				= nodeinfo.loc;
 			zwnodes[nodeid]['ready'] = true;
 			console.log('node%d: %s, %s', nodeid,
-				nodeinfo.manufacturer ? nodeinfo.manufacturer
-				          : 'id=' + nodeinfo.manufacturerid,
-				nodeinfo.product ? nodeinfo.product
-				         : 'product=' + nodeinfo.productid +
-				           ', type=' + nodeinfo.producttype);
-			console.log('node%d: name="%s", type="%s", location="%s"', nodeid,
-				nodeinfo.name,	nodeinfo.type,	nodeinfo.loc);
+				nodeinfo.manufacturer ? nodeinfo.manufacturer : 'id=' + nodeinfo.manufacturerid,
+				nodeinfo.product ? nodeinfo.product : 'product=' + nodeinfo.productid + ', type=' + nodeinfo.producttype);
+			console.log('node%d: name="%s", type="%s", location="%s"', nodeid, nodeinfo.name, nodeinfo.type, nodeinfo.loc);
 			//
 			for (comclass in zwnodes[nodeid]['classes']) {
 				switch (comclass) {
@@ -157,124 +192,40 @@ module.exports = function(RED) {
 					console.log('node%d:   %s=%s', nodeid, values[idx]['label'], values[idx]['value']);
 			};
 			//
-			zwcallback('node ready', nodeid, nodeinfo);
+			zwcallback('node ready', {nodeid: nodeid, nodeinfo: nodeinfo});
 		});
 
-		zwave.on('notification', function(nodeid, notif) {
-			switch (notif) {
-				case 0:
-					console.log('node%d: message complete', nodeid);
-				break;
-				case 1:
-					console.log('node%d: timeout', nodeid);
-				break;
-				case 2:
-					//console.log('node%d: nop', nodeid);
-				break;
-				case 3:
-					console.log('node%d: node awake', nodeid);
-				break;
-				case 4:
-					console.log('node%d: node sleep', nodeid);
-				break;
-				case 5:
-					console.log('node%d: node dead', nodeid);
-				break;
-				case 6:
-					console.log('node%d: node alive', nodeid);
-				break;
-			};
-			zwcallback('notification', nodeid, notif);
+		//
+		this.zwave.on('notification', function(nodeid, notif) {
+			var s = notificationText(notif);
+			console.log('node%d: %s', nodeid, s);
+			zwcallback('notification', {nodeid: nodeid, notification: s});
 		});
 
-		zwave.on('scan complete', function() {
+		//
+		this.zwave.on('scan complete', function() {
 			console.log('ZWave network scan complete.');
-			zwcallback('scan complete');
+			zwcallback('scan complete', {});
 		});
 
-		zwave.connect();
+		this.zwave.connect();
+
+		console.log('ZWave Driver Connected!');
 	}
     //
     RED.nodes.registerType("zwave-controller", ZWaveController);
     //
-    
-    // =========================
-	function ZWaveNode(config) {
-	// =========================
-		RED.nodes.createNode(this,config);
-		this.name = config.name;
-		var node = this;
-		// set zwave node status initially as disconnected
-		this.status({fill:"red",shape:"ring",text:"disconnected"});
-		//		
-		var zwaveController = RED.nodes.getNode(config.controller);
-		if (!zwaveController) {
-			console.log('no ZWave controller class defined!');
-		} else {
-	   	    /* =============== Node-Red events ================== */
-			this.on("input", function(msg) {
-				console.log("ZWaveNode=>input(%j)", msg);
-				switch(true) {
-				case /setLevel/.test(msg.topic):
-					console.log('setting level %j', msg.payload);
-					zwaveController.zwave.setLevel(
-						msg.payload.nodeid, 
-						msg.payload.level
-					);
-				case /setValue/.test(msg.topic):				
-					console.log('setting value %j', msg.payload);
-					zwaveController.zwave.setValue(
-						msg.payload.nodeid, 
-						msg.payload.cmdclass, 
-						msg.payload.cmdidx, 
-						msg.payload.value
-					);
-					break;
-				case /switchOn/.test(msg.topic):
-					console.log('switching on %j', msg.payload);
-					zwaveController.zwave.switchOn(msg.payload); break;
-				case /switchOff/.test(msg.topic):
-					console.log('switching off %j', msg.payload);
-					zwaveController.zwave.switchOff(msg.payload); break;
-				};
-			});
-			this.on("close", function() {
-				console.log("ZWaveNode=>close()");
-		        this.zwave.disconnect();
-		    });
-			this.on("error", function() {
-				console.log("ZWaveNode=>error()");
-			});
-	   	    /* =============== OpenZWave events ================== */
-			zwaveController.subscribe(this, {
-				'node ready': function(nodeid, nodeinfo) {
-					console.log('ZWaveNode ==> node %d ready, nodeinfo:%s', nodeid, nodeinfo);
-					if (nodeid == this.nodeid) {
-						this.status({fill:"green",shape:"dot",text:"connected"});
-					}
-				},
-				'value changed': function(val) {
-					console.log('ZWaveNode ==> value changed');
-					//
-				}
-			});
-		}
-	}
-	RED.nodes.registerType("zwave-node", ZWaveNode);
 
-	
+
 	// =========================
 	function ZWaveIn(config) {
 	// =========================
 		RED.nodes.createNode(this, config);
 		this.name = config.name;
-		this.nodeid = config.nodeid;
-		this.cmdclass = config.cmdclass;
-		this.cmdidx = config.cmdidx;
 		//
 		var node = this;
-		var ctrl = getZWaveController(config);
 		var zwaveController = RED.nodes.getNode(config.controller);
+
 		if (!zwaveController) {
 			node.err('no ZWave controller class defined!');
 		} else {
@@ -288,20 +239,23 @@ module.exports = function(RED) {
 				// what?
 			});
 	   	    /* =============== OpenZWave events ================== */
-			zwaveController.register(this, {
-				'driver ready': function(homeid) {
-					node.homeid = homeid;
-					this.status({fill:"green",shape:"dot",text: "0x"+homeid});
-				},
-				'value changed': function(val) {
-					console.log('node %d value changed');
-				}
-			});						
+			zwaveController.subscribe(this, 'driver ready', function(homeid) {
+				node.homeid = homeid;
+				node.status({fill:"green",shape:"dot",text: "0x"+homeid});
+			});
+			zwaveController.subscribe(this, 'value changed', function(info) {
+				//console.log('zwave-in injecting: %s', info);
+				node.send(info);
+			});
+			zwaveController.subscribe(this, 'notification', function(notif) {
+				node.send(notif);
+			});
 		}
 	}
 	//
 	RED.nodes.registerType("zwave-in", ZWaveIn);
 	//
+
 
 	// =========================
 	function ZWaveOut(config) {
@@ -313,7 +267,6 @@ module.exports = function(RED) {
 		this.cmdidx = config.cmdidx;
 		//
 		var node = this;
-		var ctrl = getZWaveController(config);
 		var zwaveController = RED.nodes.getNode(config.controller);
 		if (!zwaveController) {
 			node.err('no ZWave controller class defined!');
@@ -321,51 +274,67 @@ module.exports = function(RED) {
 			// set zwave node status initially as disconnected
 			this.status({fill:"red",shape:"ring",text:"disconnected"});
 			/* =============== Node-Red events ================== */
+			//
 			this.on("input", function(msg) {
 				console.log("ZWaveOut#input: %j", msg);
+				var payload = JSON.parse(msg.payload);
 				switch(true) {
+				//
+				// switch On/Off: for basic single-instance switches and dimmers
+				//
+				case /switchOn/.test(msg.topic):
+					console.log('switching on %j', payload.nodeid);
+					zwaveController.zwave.switchOn(payload.nodeid); break;
+				case /switchOff/.test(msg.topic):
+					console.log('switching off %j', payload.nodeid);
+					zwaveController.zwave.switchOff(payload.nodeid); break;
+				//
+				// setLevel: for dimmers
+				//
 				case /setLevel/.test(msg.topic):
-					console.log('setting level %j', msg.payload);
+					console.log('setting level %j', payload);
 					zwaveController.zwave.setLevel(
-						this.nodeid, 
-						msg.payload
+						msg.payload.nodeid, 
+						msg.payload.val
 					);
+				// 
+				// setValue: for everything else
+				//
 				case /setValue/.test(msg.topic):				
-					console.log('setting value %j', msg.payload);
+					console.log('setting value %s', payload);
 					zwaveController.zwave.setValue(
-						this.nodeid, 
-						this.cmdclass, 
-						this.cmdidx, 
-						msg.payload
+						payload.nodeid, 
+						(payload.cmdclass 	|| 37),// default cmdclass: on-off 
+						(payload.cmdidx 	|| 0), // default cmd index
+						(payload.cmdinstance|| 1), // default instance
+						(payload.val 		|| 0)  // default val
 					);
 					break;
-				case /switchOn/.test(msg.topic):
-					console.log('switching on %j', msg.payload);
-					zwaveController.zwave.switchOn(this.nodeid); break;
-				case /switchOff/.test(msg.topic):
-					console.log('switching off %j', msg.payload);
-					zwaveController.zwave.switchOff(this.nodeid); break;
 				};
 			});
+			//
 			this.on("close", function() {
 		        zwaveController.zwave.disconnect();
 		    });
+			//
 			this.on("error", function() {
 
 			});
+
 	   	    /* =============== OpenZWave events ================== */
-			zwaveController.register(this, {
-				'driver ready': function(homeid) {
-					node.homeid = homeid;
-					this.status({fill:"green",shape:"dot",text: "0x"+homeid});
-				},
-				'value changed': function(val) {
-					console.log('ZWaveOut node %d value changed');
-				}
-			});						
+			//
+			zwaveController.subscribe(this, 'driver ready', function(homeid) {
+				node.homeid = homeid;
+				node.status({fill:"green",shape:"dot",text: "0x"+homeid});
+			});
+			//
+			zwaveController.subscribe(this, 'value changed', function(zwval) {
+				console.log('ZWaveOut value changed: %j', zwval);
+			});
 		}
 	}
 	//
 	RED.nodes.registerType("zwave-out", ZWaveOut);
 	//
+
 }

@@ -12,9 +12,9 @@ OpenZWave nodes for node-red. Uses the OpenZWave binding for Node.JS (https://gi
 
  -- {topic: 'switchOff', payload: 2}  ==> switch off basic switch #2
 
- -- {topic: 'setLevel', payload: {nodeid: 5, level: 50}}  ==> set level on dimmer #5 to 50%
+ -- {topic: 'setLevel', payload: {zwNode: 5, level: 50}}  ==> set level on dimmer #5 to 50%
 
- -- {topic: 'setValue', payload: {nodeid: 8, cmdclass: 0x25, cmdidx:1, value: true}} ==> switch on the 2nd relay of multiswitch #8 
+ -- {topic: 'setValue', payload: {zwNode: 8, cmdClass: 0x25, cmdIdx:1, value: true}} ==> switch on the 2nd relay of multiswitch #8 
 
 *'zwave-in' / 'zwave-out'*: use this to target a specific ZWave node's function ("ValueID" in OpenZWave terminology) that can be parameterised for individual ZWave device endpoints. 
 - 'Input nodes' can listen for value changes in the ZWave network so as to generate flow messages 
