@@ -69,10 +69,10 @@
 	<b>msg.topic</b> can be: <b>setLevel, setValue, switchOn, switchOff</b><br/>
 	<b>msg.payload</b> has these sub-elements:<br/>
 		<br/>&nbsp;&nbsp;<b>msg.payload.nodeId: (REQUIRED for all topics)</b> zwave node to send the command to (eg. 2)
-		<br/>&nbsp;&nbsp;<b>msg.payload.cmdclass</b> (eg. 37 for switches)
-		<br/>&nbsp;&nbsp;<b>msg.payload.cmdidx</b> (0 for most command classes)
-		<br/>&nbsp;&nbsp;<b>msg.payload.instance</b> (1 or 2 for multi-instance devices eg FGS-211)
-		<br/>&nbsp;&nbsp;<b>msg.payload.val</b> (eg. 100 to dim to 100%)
+		<br/>&nbsp;&nbsp;<b>msg.payload.cmdclass</b>(default:37) OZW command class in decimal (eg. 37 for switches, 38 for dimmers)
+		<br/>&nbsp;&nbsp;<b>msg.payload.cmdidx</b>(default: 0) command index (0 for most command classes, see OZW/Value.cpp)
+		<br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
+		<br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
 </p>
 </script>
 
