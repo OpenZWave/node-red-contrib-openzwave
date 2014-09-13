@@ -261,7 +261,7 @@ module.exports = function(RED) {
 				// set zwave node status as disconnected
 				this.status({fill:"red",shape:"ring",text:"disconnected"});
 				// remove all event subscriptions for this node
-//				zwunsubscribe(this);
+				zwunsubscribe(this);
 				console.log('zwave-in: close');
 		    });
 			this.on("error", function() {
@@ -341,7 +341,7 @@ module.exports = function(RED) {
 				// set zwave node status as disconnected
 				this.status({fill:"red",shape:"ring",text:"disconnected"});
 				// remove all event subscriptions for this node
-	//			zwunsubscribe(this);
+				zwunsubscribe(this);
 				console.log('zwave-out: close');
 		    });
 			this.on("error", function() {
