@@ -1,0 +1,19 @@
+{
+    "name"         : "node-red-contrib-openzwave",
+    "version"      : "0.0.1",
+    "description"  : "ZWave for node-red through OpenZWave, the open source ZWave library",
+    "dependencies": {
+		"node-openzwave": "~0.0.1"
+    },
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/ekarak/node-red-contrib-openzwave.git"
+	},
+	"author": "Elias Karakoulakis <elias.karakoulakis@gmail.com>",
+    "keywords": [ "node-red" ],
+    "node-red"     : {
+        "nodes": {
+            "zwave": "10-zwave.js"
+        }
+    }
+}
