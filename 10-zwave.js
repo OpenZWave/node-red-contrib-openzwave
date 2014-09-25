@@ -302,8 +302,7 @@ module.exports = function(RED) {
 		//
 		this.on("input", function(msg) {
 			console.log("ZWaveOut#input: %j", msg);
-			if (!msg) return;
-                        if (!(msg.hasOwnProperty('payload')) return;
+			if (!(msg && msg.hasOwnProperty('payload'))) return;
 			var payload;
                         if (typeof(msg.payload) === "object") {
                                 payload = msg.payload;
@@ -314,7 +313,6 @@ module.exports = function(RED) {
                                 console.log('eibdout.onInput: illegal msg.payload!');
                                 return; 
                         } 
- = JSON.parse(msg.payload);
 			switch(true) {
 			//
 			// switch On/Off: for basic single-instance switches and dimmers
