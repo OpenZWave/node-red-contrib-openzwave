@@ -341,7 +341,7 @@ module.exports = function(RED) {
 					(payload.cmdclass 	|| 37),// default cmdclass: on-off 
 					(payload.cmdidx 	|| 0), // default cmd index
 					(payload.instance 	|| 1), // default instance
-					(payload.value		|| 0)  // default val
+					payload.value
 				);
 				break;
 			};

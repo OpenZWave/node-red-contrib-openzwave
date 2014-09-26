@@ -20,5 +20,8 @@ OpenZWave nodes for node-red. Uses the OpenZWave binding for Node.JS (https://gi
 - 'Input nodes' can listen for value changes in the ZWave network so as to generate flow messages 
 - 'Output nodes' can be setup so you can send ZWave commands from flow messages
 
+*WARNING* multi-instance devices (such as the Fibaro FGS-221) won't work with the stock jperkin/node-openzwave library, as it lacks the "_instance" field in OpenZWave ValueID's
+you need to patch your installation as per the following: https://github.com/jperkin/node-openzwave/pull/31 , or simply use repo "ekarak/node-openzwave" instead
+ 
 Here's an example flow, utilising the generic 'zwave-node'. Use an inject node to send arbitrary zwave commands:
 ![openzwave example](https://github.com/ekarak/node-red-contrib-openzwave/raw/master/node-red-openzwave.png)

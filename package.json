@@ -3,7 +3,7 @@
     "version"      : "0.0.1",
     "description"  : "ZWave for node-red through OpenZWave, the open source ZWave library",
     "dependencies": {
-		"openzwave": "~0.0.1"
+		"openzwave": "https://github.com/ekarak/node-openzwave.git"
     },
 	"repository": {
 		"type": "git",
