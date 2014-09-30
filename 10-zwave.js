@@ -19,7 +19,7 @@
 */
 module.exports = function(RED) {
 
-	console.log("loading openzwave for node-red");
+	console.log("loading the new openzwave for node-red");
 
 	var OpenZWave = require('openzwave');
 	//
@@ -30,7 +30,7 @@ module.exports = function(RED) {
 	var zwnodes =  [];
 
 	// event routing map: which NR node gets notified for each zwave event
-	var nrNodeSubscriptions = {}; // {'event' => {node1: closure1, node2: closure2...}, 'event2' => ...}
+	var nrNodeSubscriptions = {}; // {'event1' => {node1: closure1, node2: closure2...}, 'event2' => ...}
 
 	// subscribe a Node-Red node to ZWave events
 	function zwsubscribe(nrNode, event, callback) {
@@ -52,16 +52,15 @@ module.exports = function(RED) {
 
 	// dispatch OpenZwave events onto all active Node-Red subscriptions
 	function zwcallback(event, arghash) {
-		//console.log("zwcallback(event: %s, args: %j)", event, arghash);
-		for (var event in nrNodeSubscriptions) {
-			if (nrNodeSubscriptions.hasOwnProperty(event)) {
-				var nrNodes = nrNodeSubscriptions[event];
-				for (var nrnid in nrNodes) {
-					if (nrNodes.hasOwnProperty(nrnid)) {
-						var nrNode = RED.nodes.getNode(nrnid);
-						//console.log("zwcallback => %j,  %s,  args %j", nrNode, event, arghash);
-						nrNodes[nrnid].call(nrNode, event, arghash);
-					}
+		console.log("zwcallback(event: %s, args: %j)", event, arghash);
+		if (nrNodeSubscriptions.hasOwnProperty(event)) {
+			var nrNodes = nrNodeSubscriptions[event];
+			// an event might be subscribed by multiple NR nodes
+			for (var nrnid in nrNodes) {
+				if (nrNodes.hasOwnProperty(nrnid)) {
+					var nrNode = RED.nodes.getNode(nrnid);
+					console.log("zwcallback => %j,  %s,  args %j", nrNode, event, arghash);
+					nrNodes[nrnid].call(nrNode, event, arghash);
 				}
 			}
 		}
@@ -126,12 +125,12 @@ module.exports = function(RED) {
 		if (zwnodes[nodeid]['ready']) {
 			oldst = zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index]['value'];
 			//console.log('node%d: changed: %d:%s:%s->%s', nodeid, comclass, valueId['label'],  oldst, valueId['value']);
+			// tell NR only if the node is marked as ready
+			zwcallback('value changed', { 
+				"nodeid": nodeid, "cmdclass": comclass, "instance": valueId.instance, "cmdidx": valueId.index,
+				"oldState": oldst, "currState": valueId['value']
+			});
 		}
-		// tell NR
-		zwcallback('value changed', { 
-			"nodeid": nodeid, "cmdclass": comclass, "instance": valueId.instance, "cmdidx": valueId.index,
-			"oldState": oldst, "currState": valueId['value']
-		});
 		// update cache
 		zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index] = valueId;
 	}
@@ -271,9 +270,12 @@ module.exports = function(RED) {
 		// pass these zwave events over to Node flows:
 		var arr = ['driver ready', 'node ready', 'value changed', 'notification'];
 		for (var i in arr) {
-			zwsubscribe(this, arr[i], function(event, info) {
-				if (event === 'driver ready') node.status({fill:"green", shape:"dot", text: info.homeHex});
-				var msg = {'topic': 'zwave: '+event, 'payload': info};
+			zwsubscribe(this, arr[i], function(event, data) {
+				if (event === 'driver ready') node.status({fill:"green", shape:"dot", text: data.homeHex});
+				var msg = {'topic': 'zwave: '+event};
+				if (data) {
+					msg.payload = data;
+				}
 				console.log('===> ZWAVE-IN injecting: %j', msg);
 				node.send(msg);
 			});
@@ -301,7 +303,7 @@ module.exports = function(RED) {
 		/* =============== Node-Red events ================== */
 		//
 		this.on("input", function(msg) {
-			console.log("ZWaveOut#input: %j", msg);
+			//console.log("ZWaveOut#input: %j", msg);
 			if (!(msg && msg.hasOwnProperty('payload'))) return;
 			var payload;
                         if (typeof(msg.payload) === "object") {
@@ -336,6 +338,7 @@ module.exports = function(RED) {
 			// setValue: for everything else
 			//
 			case /setValue/.test(msg.topic):
+				console.log("payload: %j", payload);
 				ozwDriver.setValue(
 					payload.nodeid, 
 					(payload.cmdclass 	|| 37),// default cmdclass: on-off 
