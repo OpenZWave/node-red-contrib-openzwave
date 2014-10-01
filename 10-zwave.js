@@ -66,6 +66,12 @@ module.exports = function(RED) {
 		}
 	}
 
+	function camelCase(str) {
+		return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+			return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+		  }).replace(/\s+/g, '');
+	}
+
 	// see openzwave/cpp/src/Notification.cpp
 	var notificationText = function(a) { 
 		switch(a){
@@ -156,7 +162,7 @@ module.exports = function(RED) {
 		zwnodes[nodeid]['productid'] 		= nodeinfo.productid;
 		zwnodes[nodeid]['type'] 		= nodeinfo.type;
 		zwnodes[nodeid]['name'] 		= nodeinfo.name;
-		zwnodes[nodeid]['loc'] 			= nodeinfo.loc;
+		zwnodes[nodeid]['loc'] 			= nodeinfo.loc; 
 		zwnodes[nodeid]['ready'] = true;
 		/*console.log('node%d: %s, %s', nodeid,
 			nodeinfo.manufacturer ? nodeinfo.manufacturer : 'id=' + nodeinfo.manufacturerid,
@@ -190,6 +196,19 @@ module.exports = function(RED) {
 		zwcallback('scan complete', {});
 	}
 
+	// list of events emitted by OpenZWave and 
+	var ozwEvents = {
+		'driver ready':  driverReady, 
+		'driver failed': driverFailed,
+		'node added':    nodeAdded,
+		'node ready':	nodeReady,
+		'value added':  valueAdded,
+	 	'value changed': valueChanged, 
+		'value removed': valueRemoved,
+		'notification': notification,
+		'scan complete': scanComplete
+	}
+;
 	// ==========================
 	function ZWaveController(n) {
 	// ==========================
@@ -217,15 +236,9 @@ module.exports = function(RED) {
 			});
 
 	   		/* =============== OpenZWave events ================== */
-			ozwDriver.on('driver ready', 	driverReady);
-			ozwDriver.on('driver failed', 	driverFailed);
-			ozwDriver.on('node added',		nodeAdded);
-			ozwDriver.on('node ready', 		nodeReady);
-			ozwDriver.on('value added', 	valueAdded);
-			ozwDriver.on('value changed', 	valueChanged);
-			ozwDriver.on('value removed', 	valueRemoved);
-			ozwDriver.on('notification', 	notification);
-			ozwDriver.on('scan complete', 	scanComplete);
+			Object.keys(ozwEvents).forEach(function (key) { 
+				ozwDriver.on(key, ozwEvents[key]);
+			})
 
 			// only connect once!
 			ozwDriver.connect();
@@ -266,20 +279,19 @@ module.exports = function(RED) {
 		this.on("error", function() {
 			// what? there are no errors. there never were.
 		});
-	       /* =============== OpenZWave events ================== */
-		// pass these zwave events over to Node flows:
-		var arr = ['driver ready', 'node ready', 'value changed', 'notification'];
-		for (var i in arr) {
-			zwsubscribe(this, arr[i], function(event, data) {
-				if (event === 'driver ready') node.status({fill:"green", shape:"dot", text: data.homeHex});
-				var msg = {'topic': 'zwave: '+event};
-				if (data) {
-					msg.payload = data;
+
+		/* =============== OpenZWave events ================== */
+		Object.keys(ozwEvents).forEach(function (key) {
+			zwsubscribe(this, key, function(event, data) {
+				if (event === 'driver ready') {
+					 node.status({fill:"green", shape:"dot", text: data.homeHex});
 				}
+				var msg = {'topic': 'zwave: '+event};
+				if (data) msg.payload = data;
 				console.log('===> ZWAVE-IN injecting: %j', msg);
 				node.send(msg);
 			});
-		}
+		});
 	}
 	//
 	RED.nodes.registerType("zwave-in", ZWaveIn);
