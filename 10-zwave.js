@@ -122,6 +122,7 @@ module.exports = function(RED) {
 		zwcallback('value added', { 
 			"nodeid": nodeid, "cmdclass": comclass, "instance": valueId.instance, "cmdidx": valueId.index,
 			"currState": valueId['value'], 
+			"zwaveValue": valueId
 		});
 	}
 
@@ -134,7 +135,8 @@ module.exports = function(RED) {
 			// tell NR only if the node is marked as ready
 			zwcallback('value changed', { 
 				"nodeid": nodeid, "cmdclass": comclass, "instance": valueId.instance, "cmdidx": valueId.index,
-				"oldState": oldst, "currState": valueId['value']
+				"oldState": oldst, "currState": valueId['value'],
+				"zwaveValue": valueId
 			});
 		}
 		// update cache
