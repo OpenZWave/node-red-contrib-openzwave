@@ -17,6 +17,16 @@
   limitations under the License.
   
 */
+
+var UUIDPREFIX = "_macaddr_";
+var HOMENAME = "_homename_";
+
+require('getmac').getMac(function(err, macAddress) {
+	if (err) throw err;
+	UUIDPREFIX = macAddress.replace(/:/gi, '');
+});
+
+
 module.exports = function(RED) {
 
 	console.log("loading the new openzwave for node-red");
@@ -58,6 +68,12 @@ module.exports = function(RED) {
 	// dispatch OpenZwave events onto all active Node-Red subscriptions
 	function zwcallback(event, arghash) {
 		//console.log("zwcallback(event: %s, args: %j)", event, arghash);
+		// Add uuid
+		if (arghash.nodeid !== undefined && HOMENAME !== undefined)
+			arghash.uuid = UUIDPREFIX+'-' +
+					HOMENAME + '-' +
+					arghash.nodeid;
+
 		if (nrNodeSubscriptions.hasOwnProperty(event)) {
 			var nrNodes = nrNodeSubscriptions[event];
 			// an event might be subscribed by multiple NR nodes
@@ -94,6 +110,7 @@ module.exports = function(RED) {
 	function driverReady(homeid) {
 		ozwConfigNode.homeid = homeid;
 		var homeHex = '0x'+ homeid.toString(16);
+		HOMENAME = homeHex;
 		ozwConfigNode.name = homeHex;
 		console.log('scanning Zwave network with homeid %s...', homeHex);
 		zwcallback('driver ready', ozwConfigNode, {'homeid': homeid, 'homeHex':  homeHex});
@@ -128,7 +145,9 @@ module.exports = function(RED) {
 		zwcallback('value added', { 
 			"nodeid": nodeid, "cmdclass": comclass, "instance": valueId.instance, "cmdidx": valueId.index,
 			"currState": valueId['value'], 
-			"zwaveValue": valueId
+			"label": valueId['label'],
+			"units": valueId['units'],
+			"value": valueId
 		});
 	}
 
@@ -144,7 +163,9 @@ module.exports = function(RED) {
 			zwcallback('value changed', { 
 				"nodeid": nodeid, "cmdclass": comclass, "instance": valueId.instance, "cmdidx": valueId.index,
 				"oldState": oldst, "currState": valueId['value'],
-				"zwaveValue": valueId
+				"label": valueId['label'],
+				"units": valueId['units'],
+				"value": valueId
 			});
 		}
 		// update cache
