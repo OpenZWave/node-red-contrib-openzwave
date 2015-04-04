@@ -332,19 +332,16 @@ module.exports = function(RED) {
 			// switch On/Off: for basic single-instance switches and dimmers
 			//
 			case /switchOn/.test(msg.topic):
-				ozwDriver.switchOn(payload.nodeid); 
+				ozwDriver.setValue(payload.nodeid, 37, 1, 0, true); 
 				break;
 			case /switchOff/.test(msg.topic):
-				ozwDriver.switchOff(payload.nodeid); 
+				ozwDriver.setValue(payload.nodeid, 37, 1, 0, false); 
 				break;
 			//
 			// setLevel: for dimmers
 			//
 			case /setLevel/.test(msg.topic):
-				ozwDriver.setLevel(
-					payload.nodeid, 
-					payload.value
-				);
+				ozwDriver.setValue(payload.nodeid, 38, 1, 0, payload.value); 
 				break;
 			// 
 			// setValue: for everything else
@@ -354,8 +351,8 @@ module.exports = function(RED) {
 				ozwDriver.setValue(
 					payload.nodeid, 
 					(payload.cmdclass 	|| 37),// default cmdclass: on-off 
-					(payload.cmdidx 	|| 0), // default cmd index
 					(payload.instance 	|| 1), // default instance
+					(payload.cmdidx 	|| 0), // default cmd index
 					payload.value
 				);
 				break;
