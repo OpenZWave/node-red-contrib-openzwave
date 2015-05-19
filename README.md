@@ -1,7 +1,7 @@
 node-red-contrib-openzwave
 ==========================
 
-*OpenZWave* nodes for Node-Red ( <http://nodered.org/> ). Uses the OpenZWave binding for Node.JS ( <https://github.com/ekarak/node-openzwave> ), which is forked off jperkin/node-openzwave and patched to be able to handle multi-instance devices (as it was lacking the `_instance` field in OpenZWave ValueID's.)
+*OpenZWave* nodes for Node-Red ( <http://nodered.org/> ). Uses the *shared* OpenZWave binding for Node.JS ( <https://github.com/ekarak/node-openzwave-shared> ), which is in turn forked off jperkin/node-openzwave to compile against Open ZWave shared library and patched to be able to handle multi-instance devices (as it was lacking the `_instance` field in OpenZWave ValueID's.)
 
 
 *zwave-controller* : a unique CONFIG node that holds configuration for initializing OpenZWave and will act as the encapsulator for OZW access. As a node-red 'config' node, it cannot be added to a graph, but it acts as a singleton object that gets created in the the background when you add 'zwave-in' or 'zwave-out' nodes and configure them to point to a ZWave USB controller (usually /dev/ttyUSB0). It also holds the state for the openZWave library which is useful across flow edits (you surely don't want to wait for OpenZWave to reinitialise when you change your flows!)
