@@ -19,9 +19,9 @@
 */
 module.exports = function(RED) {
 
-	console.log("loading the new openzwave for node-red");
+	console.log("booting up node-red-contrib-openzwave");
 
-	var OpenZWave = require('openzwave');
+	var OpenZWave = require('openzwave-shared');
 	//
 	var ozwDriver = null;
 	var ozwConfigNode = null;
