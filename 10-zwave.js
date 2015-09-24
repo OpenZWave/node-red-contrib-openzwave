@@ -51,7 +51,7 @@ module.exports = function(RED) {
 	function zwsubscribe(nrNode, event, callback) {
 		if (!(event in nrNodeSubscriptions))
 			nrNodeSubscriptions[event] = {};
-		console.log('subscribing %s to event %s', nrNode.id, event);
+		//console.log('subscribing %s to event %s', nrNode.id, event);
 		nrNodeSubscriptions[event][nrNode.id] = callback;
 	}
 
@@ -59,7 +59,7 @@ module.exports = function(RED) {
 	function zwunsubscribe(nrNode) {
 		for (var event in nrNodeSubscriptions) {
 			if (nrNodeSubscriptions.hasOwnProperty(event)) {
-				console.log('unsubscribing %s for %s', event, nrNode.id);
+				//console.log('unsubscribing %s for %s', event, nrNode.id);
 				delete nrNodeSubscriptions[event][nrNode.id];
 			}
 		}
@@ -257,8 +257,8 @@ module.exports = function(RED) {
 		ozwConfigNode = this;
 		if (!ozwDriver) {
 	    	console.log("initializing new OpenZWave Controller: %j", n);
-			ozwDriver = new OpenZWave(
-				this.port, {
+			ozwDriver = new OpenZWave({
+				modpath: __dirname,
 			    	logging: 	false,           // enable logging to OpenZWave_Log.txt
 				consoleoutput: true,     // copy logging to the console
 			 	saveconfig: true,        // write an XML network layout
@@ -273,7 +273,7 @@ module.exports = function(RED) {
 			})
 
 			// only connect once!
-			ozwDriver.connect();
+			ozwDriver.connect(this.port);
 
 			console.log('ZWave Driver on %s is active!', this.port);
 		}
