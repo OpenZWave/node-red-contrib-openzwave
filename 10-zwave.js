@@ -244,9 +244,9 @@ module.exports = function(RED) {
 	// ==========================
 	function ZWaveController(n) {
 	// ==========================
-    		RED.nodes.createNode(this,n);
-    		this.name = n.port;
-	        this.port = n.port;
+		RED.nodes.createNode(this,n);
+		this.name = n.port;
+		this.port = n.port;
 		this.driverattempts = n.driverattempts;
 		this.pollinterval = n.pollinterval;
 
@@ -256,16 +256,7 @@ module.exports = function(RED) {
 		// only when the node.js VM is starting
 		ozwConfigNode = this;
 		if (!ozwDriver) {
-	    	console.log("initializing new OpenZWave Controller: %j", n);
-			ozwDriver = new OpenZWave({
-				modpath: __dirname,
-			    	logging: 	false,           // enable logging to OpenZWave_Log.txt
-				consoleoutput: true,     // copy logging to the console
-			 	saveconfig: true,        // write an XML network layout
-				driverattempts: this.driverattempts,        // try this many times before giving up
-				pollinterval: this.pollinterval,        // interval between polls in milliseconds
-				suppressrefresh: true    // do not send updates if nothing changed
-			});
+			ozwDriver = new OpenZWave();
 
 	   		/* =============== OpenZWave events ================== */
 			Object.keys(ozwEvents).forEach(function (key) {

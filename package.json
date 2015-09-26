@@ -3,7 +3,7 @@
   "version": "1.0.7",
   "description": "ZWave for node-red through OpenZWave, the open source ZWave library",
   "dependencies": {
-    "openzwave-shared": ">= 1.0.6",
+    "openzwave-shared": ">= 1.0.8",
     "getmac": ">= 1.0.0"
   },
   "repository": {
