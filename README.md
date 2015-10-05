@@ -24,6 +24,15 @@ Integrating this node onto your Node-Red installation enables you to have **bidi
    - `{topic: 'setValue', payload: {"nodeid":8, "instance":1, "value":1}}`   ==> switch on the 2nd relay of multiswitch #8
 
   For a full list of ZWave command classes, see <http://wiki.micasaverde.com/index.php/ZWave_Command_Classes>
+  
+  - **(New since version 1.1.0)** Experimental support for the *full OpenZWave API*: 
+  You can try passing ANY of the commands accepted by openzwave-shared (which
+  should be `properlyCamelCased` (convention is that `Manager::HealNetwork` 
+  would be called as `healNetwork'), followed by a `payload` whose contents 
+  is simply a JSON array of the command arguments **in the correct order**.
+  
+  - For example, to enable polling for ZWave node #5 for the on-off command class (0x25 == decimal 37):
+    - `{"topic": "enablePoll", "payload": [5, 37]}`
 
 - *zwave-in* : a node that emits ZWave events as they are emitted from the ZWave controller. Use this node to get status feedback about what is happening in real time in your ZWave network. For example, the following message is injected into the NR flow when ZWave node #9, a binary switch, is turned on:
 
