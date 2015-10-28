@@ -85,15 +85,20 @@ module.exports = function(RED) {
 					var nrNode = RED.nodes.getNode(nrnid);
 					if (debug) console.log("zwcallback => %j,  %s,  args %j", nrNode, event, arghash);
 					nrNodes[nrnid].call(nrNode, event, arghash);
-					// update NR node status
-					nrNode.status({
-						fill: driverReadyStatus ? "green" : "red",
-						text: driverReadyStatus ? "connected" : "disconnected",
-						shape:"ring"
-					});
+					updateNodeRedStatus(nrNode);
 				}
 			}
 		}
+	}
+
+  // update the NR node's status indicator
+	function updateNodeRedStatus(nrNode) {
+		// update NR node status
+		nrNode.status({
+			fill: driverReadyStatus ? "green" : "red",
+			text: driverReadyStatus ? "connected" : "disconnected",
+			shape:"ring"
+		});
 	}
 
 	// see openzwave/cpp/src/Notification.cpp
@@ -191,7 +196,7 @@ module.exports = function(RED) {
 	function nodeReady(nodeid, nodeinfo) {
 		for (var attrname in nodeinfo) {
 			if (nodeinfo.hasOwnProperty(attrname)) {
-				zwnodes[nodeid][attrname] = nodeinfo[attrname]; 
+				zwnodes[nodeid][attrname] = nodeinfo[attrname];
 			}
 		}
 		zwnodes[nodeid].ready = true;
@@ -200,9 +205,9 @@ module.exports = function(RED) {
 			switch (comclass) {
 			case 0x25: // COMMAND_CLASS_SWITCH_BINARY
 			case 0x26: // COMMAND_CLASS_SWITCH_MULTILEVEL
-			case 0x30: // COMMAND_CLASS_SENSOR_BINARY 
-			case 0x31: // COMMAND_CLASS_SENSOR_MULTILEVEL 
-			case 0x60: // COMMAND_CLASS_MULTI_INSTANCE 
+			case 0x30: // COMMAND_CLASS_SENSOR_BINARY
+			case 0x31: // COMMAND_CLASS_SENSOR_MULTILEVEL
+			case 0x60: // COMMAND_CLASS_MULTI_INSTANCE
 				ozwDriver.enablePoll(nodeid, comclass);
 				break;
 			}
@@ -332,6 +337,8 @@ module.exports = function(RED) {
 				node.send(msg);
 			});
 		});
+		// set initial node status upon creation
+		updateNodeRedStatus(node);
 	}
 	//
 	RED.nodes.registerType("zwave-in", ZWaveIn);
@@ -357,13 +364,13 @@ module.exports = function(RED) {
 			if (debug) console.log("ZWaveOut#input: %j", msg);
 			var payload;
 			try {
-				payload = (typeof(msg.payload) === "string") ? 
+				payload = (typeof(msg.payload) === "string") ?
 					JSON.parse(msg.payload) : msg.payload;
 			} catch(err) {
 				node.error(node.name+': illegal msg.payload! ('+err+')');
 				return;
 			}
-			switch(true) {				
+			switch(true) {
 
 			// switch On/Off: for basic single-instance switches and dimmers
 			case /switchOn/.test(msg.topic):
@@ -372,7 +379,7 @@ module.exports = function(RED) {
 			case /switchOff/.test(msg.topic):
 				ozwDriver.setValue(payload.nodeid, 37, 1, 0, false);
 				break;
-				
+
 			// setLevel: for dimmers
 			case /setLevel/.test(msg.topic):
 				ozwDriver.setValue(payload.nodeid, 38, 1, 0, payload.value);
@@ -389,19 +396,19 @@ module.exports = function(RED) {
 					payload.value
 				);
 				break;
-			
+
 			/* EXPERIMENTAL: send basically every available command down
 			 * to OpenZWave, just name the function in the message topic
 			 * and pass in the payload the function's args as an array:
-			 * {"topic": "someOpenZWaveCommand", "payload": [1, 2, 3]} 
+			 * {"topic": "someOpenZWaveCommand", "payload": [1, 2, 3]}
 			 * */
 			default:
-				if (ozwDriver.hasOwnProperty(msg.topic) && 
+				if (ozwDriver.hasOwnProperty(msg.topic) &&
 					typeof ozwDriver[msg.topic] === 'function' &&
 					payload.constructor.name === 'Array'
 					) {
 						console.log('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload);
-						try { 
+						try {
 							ozwDriver[msg.topic](payload.args);
 						} catch(err) {
 							node.warn('direct OpenZWave call to '+ msg.topic+' failed: '+err);
@@ -422,13 +429,16 @@ module.exports = function(RED) {
 			// there are. no. russians. in afghanistan.
 			node.status({fill:"yellow",shape:"ring",text:"error"});
 		});
-		
+
 		/* =============== OpenZWave events ================== */
 		Object.keys(ozwEvents).forEach(function (key) {
 			zwsubscribe(node, key, function(event, data) {
 				// nuttin ;) we merely subscribe to have the NR node status update :)
 			});
 		});
+
+		// set initial node status upon creation
+		updateNodeRedStatus(node);
 	}
 	//
 	RED.nodes.registerType("zwave-out", ZWaveOut);
