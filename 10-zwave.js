@@ -101,19 +101,6 @@ module.exports = function(RED) {
 		});
 	}
 
-	// see openzwave/cpp/src/Notification.cpp
-	var notificationText = function(a) {
-		switch(a){
-		case 0: return "message complete";
-		case 1: return "timeout";
-		case 2: return "nop";
-		case 3: return "node awake";
-		case 4: return "node asleep";
-		case 5: return "node dead";
-		case 6: return "node alive";
-		default: return "unknown OZW notification: "+a;
-		}
-	}
 
 	function driverReady(homeid) {
 		driverReadyStatus = true;
@@ -223,10 +210,16 @@ module.exports = function(RED) {
 		zwcallback('node ready', {nodeid: nodeid, nodeinfo: nodeinfo});
 	}
 
-	function notification(nodeid, notif) {
-		var s = notificationText(notif);
-		if (debug) console.log('node%d: %s', nodeid, s);
-		zwcallback('notification', {nodeid: nodeid, notification: s});
+	function nodeEvent(nodeid, evtcode, valueId, help) {
+		zwcallback('node event', {
+				"nodeid": nodeid, "event": evtcode,
+				"cmdclass": valueId.comclass,  "cmdidx": valueId.index, "instance": valueId.instance,
+				"msg": msg});
+	}
+
+	function notification(nodeid, notif, help) {
+		if (debug) console.log('node%d: %s', nodeid, help);
+		zwcallback('notification', {nodeid: nodeid, notification: notif, help: help});
 	}
 
 	function scanComplete() {
@@ -234,9 +227,9 @@ module.exports = function(RED) {
 		zwcallback('scan complete', {});
 	}
 
-	function controllerCommand(state, errcode) {
+	function controllerCommand(state, errcode, help) {
 		if (debug) console.log('ZWave controller command feedback received');
-		zwcallback('controller command', {state: state, errcode: errcode});
+		zwcallback('controller command', {state: state, errcode: errcode, help: help});
 	}
 
 	// list of events emitted by OpenZWave and redirected to Node flows by the mapped function
@@ -245,6 +238,7 @@ module.exports = function(RED) {
 		'driver failed': driverFailed,
 		'node added'   : nodeAdded,
 		'node ready'   : nodeReady,
+		'node event'   : nodeEvent,
 		'value added'  : valueAdded,
 	 	'value changed': valueChanged,
 		'value removed': valueRemoved,
