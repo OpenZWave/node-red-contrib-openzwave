@@ -227,9 +227,9 @@ module.exports = function(RED) {
 		zwcallback('scan complete', {});
 	}
 
-	function controllerCommand(state, errcode, help) {
+	function controllerCommand(nodeid, state, errcode, help) {
 		if (debug) console.log('ZWave controller command feedback received');
-		zwcallback('controller command', {state: state, errcode: errcode, help: help});
+		zwcallback('controller command', {nodeid: nodeid, state: state, errcode: errcode, help: help});
 	}
 
 	// list of events emitted by OpenZWave and redirected to Node flows by the mapped function
