@@ -266,13 +266,12 @@ module.exports = function(RED) {
 				ConsoleOutput: debug,
 				QueueLogLevel: 6
 			});
+			/* =============== OpenZWave events ================== */
+			Object.keys(ozwEvents).forEach(function (evt) {
+				if (debug) console.log(node.name+' addListener ' + evt);
+				ozwDriver.on(evt, ozwEvents[evt]);
+			})
 		}
-
-		/* =============== OpenZWave events ================== */
-		Object.keys(ozwEvents).forEach(function (evt) {
-			if (debug) console.log(node.name+' addListener ' + evt);
-			ozwDriver.on(evt, ozwEvents[evt]);
-		})
 
 		/* =============== Node-Red events ================== */
 		this.on("close", function() {
