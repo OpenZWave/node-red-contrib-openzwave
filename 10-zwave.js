@@ -1,20 +1,20 @@
 /*
 
-  OpenZWave nodes for IBM's Node-Red
-  https://github.com/ekarak/node-red-contrib-openzwave
-  (c) 2014-2015, Elias Karakoulakis <elias.karakoulakis@gmail.com>
+	OpenZWave nodes for IBM's Node-Red
+	https://github.com/ekarak/node-red-contrib-openzwave
+	(c) 2014-2015, Elias Karakoulakis <elias.karakoulakis@gmail.com>
 
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-  http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 
 */
 
@@ -27,7 +27,7 @@ require('getmac').getMac(function(err, macAddress) {
 });
 
 /* set this to true to get some incomprehensible Klingon text in your console */
-var debug = false;
+var debug = true;
 if (debug) console.log("booting up node-red-contrib-openzwave");
 
 module.exports = function(RED) {
@@ -51,7 +51,7 @@ module.exports = function(RED) {
 	function zwsubscribe(nrNode, event, callback) {
 		if (!(event in nrNodeSubscriptions))
 			nrNodeSubscriptions[event] = {};
-		if (debug) console.log('subscribing %s(%s) to event %s', nrNode.type, nrNode.id, event);
+		if (debug) console.log('subscribing %s(%s) to event "%s"', nrNode.type, nrNode.id, event);
 		nrNodeSubscriptions[event][nrNode.id] = callback;
 	}
 
@@ -83,7 +83,7 @@ module.exports = function(RED) {
 			for (var nrnid in nrNodes) {
 				if (nrNodes.hasOwnProperty(nrnid)) {
 					var nrNode = RED.nodes.getNode(nrnid);
-					if (debug) console.log("zwcallback => %j,  %s,  args %j", nrNode, event, arghash);
+					if (debug) console.log("zwcallback => %j,	%s,	args %j", nrNode, event, arghash);
 					nrNodes[nrnid].call(nrNode, event, arghash);
 					updateNodeRedStatus(nrNode);
 				}
@@ -91,7 +91,7 @@ module.exports = function(RED) {
 		}
 	}
 
-  // update the NR node's status indicator
+	// update the NR node's status indicator
 	function updateNodeRedStatus(nrNode) {
 		// update NR node status
 		nrNode.status({
@@ -100,7 +100,6 @@ module.exports = function(RED) {
 			shape:"ring"
 		});
 	}
-
 
 	function driverReady(homeid) {
 		driverReadyStatus = true;
@@ -151,7 +150,7 @@ module.exports = function(RED) {
 		if (zwnodes[nodeid].ready) {
 			oldst = zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index].value;
 			if (debug) {
-				console.log('node%d: changed: %d:%s:%s->%s', nodeid, comclass, valueId['label'],  oldst, valueId['value']);
+				console.log('node%d: changed: %d:%s:%s->%s', nodeid, comclass, valueId['label'],	oldst, valueId['value']);
 				console.log('node%d: value=%s', nodeid, JSON.stringify(valueId));
 			}
 			// tell NR only if the node is marked as ready
@@ -175,7 +174,7 @@ module.exports = function(RED) {
 		{
 			delete zwnodes[nodeid]['classes'][comclass][index];
 			zwcallback('value deleted', {
-				"nodeid": nodeid, "cmdclass": comclass,  "cmdidx": index, "instance": instance
+				"nodeid": nodeid, "cmdclass": comclass,	"cmdidx": index, "instance": instance
 			});
 		}
 	}
@@ -203,7 +202,7 @@ module.exports = function(RED) {
 			if (debug) {
 				console.log('node%d: class %d', nodeid, comclass);
 				for (idx in values)
-					console.log('node%d:   %s=%s', nodeid, values[idx]['label'], values[idx]['value']);
+					console.log('node%d:	 %s=%s', nodeid, values[idx]['label'], values[idx]['value']);
 			}
 		};
 		//
@@ -213,7 +212,7 @@ module.exports = function(RED) {
 	function nodeEvent(nodeid, evtcode, valueId, msg) {
 		zwcallback('node event', {
 				"nodeid": nodeid, "event": evtcode,
-				"cmdclass": valueId.comclass,  "cmdidx": valueId.index, "instance": valueId.instance,
+				"cmdclass": valueId.comclass,	"cmdidx": valueId.index, "instance": valueId.instance,
 				"msg": msg});
 	}
 
@@ -236,10 +235,10 @@ module.exports = function(RED) {
 	var ozwEvents = {
 		'driver ready' : driverReady,
 		'driver failed': driverFailed,
-		'node added'   : nodeAdded,
-		'node ready'   : nodeReady,
-		'node event'   : nodeEvent,
-		'value added'  : valueAdded,
+		'node added'	 : nodeAdded,
+		'node ready'	 : nodeReady,
+		'node event'	 : nodeEvent,
+		'value added'	: valueAdded,
 	 	'value changed': valueChanged,
 		'value removed': valueRemoved,
 		'notification' : notification,
@@ -253,6 +252,7 @@ module.exports = function(RED) {
 		RED.nodes.createNode(this,n);
 		this.name = n.port;
 		this.port = n.port;
+		ozwConfig.port = n.port;
 		this.driverattempts = n.driverattempts;
 		this.pollinterval = n.pollinterval;
 		var node = this;
@@ -262,7 +262,7 @@ module.exports = function(RED) {
 		// so we only get to initialise one single OZW driver (a lengthy process)
 		if (!ozwDriver) {
 			ozwDriver = new OpenZWave({
-				Logging:       debug,
+				Logging:			 debug,
 				ConsoleOutput: debug,
 				QueueLogLevel: 6
 			});
@@ -292,6 +292,25 @@ module.exports = function(RED) {
 			ozwConnected = true;
 		}
 	}
+
+	function exitHandler(options, err) {
+		if (ozwDriver && ozwConnected) {
+			console.log('disconnecting ZWave driver on '+ozwConfig.port);
+			ozwDriver.disconnect(ozwConfig.port);
+		}
+		if (options.cleanup) console.log('clean shutdown');
+		if (err) console.log(err.stack);
+		if (options.exit) process.exit();
+	}
+
+	//do something when app is closing
+	process.on('exit', exitHandler.bind(null,{cleanup:true}));
+
+	//catches ctrl+c event
+	process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+
+	//catches uncaught exceptions
+	process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 	//
 	RED.nodes.registerType("zwave-controller", ZWaveController);
 	//

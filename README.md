@@ -24,13 +24,13 @@ Integrating this node onto your Node-Red installation enables you to have **bidi
    - `{topic: 'setValue', payload: {"nodeid":8, "instance":1, "value":1}}`   ==> switch on the 2nd relay of multiswitch #8
 
   For a full list of ZWave command classes, see <http://wiki.micasaverde.com/index.php/ZWave_Command_Classes>
-  
-  - **(New since version 1.1.0)** Experimental support for the *full OpenZWave API*: 
+
+  - **(New since version 1.1.0)** Experimental support for the *full OpenZWave API*:
   You can try passing ANY of the commands accepted by openzwave-shared (which
-  should be `properlyCamelCased` (convention is that `Manager::HealNetwork` 
-  would be called as `healNetwork'), followed by a `payload` whose contents 
+  should be `properlyCamelCased` (convention is that `Manager::HealNetwork`
+  would be called as `healNetwork'), followed by a `payload` whose contents
   is simply a JSON array of the command arguments **in the correct order**.
-  
+
   - For example, to enable polling for ZWave node #5 for the on-off command class (0x25 == decimal 37):
     - `{"topic": "enablePoll", "payload": [5, 37]}`
 
@@ -42,6 +42,9 @@ Integrating this node onto your Node-Red installation enables you to have **bidi
 
 
 #### Installation
+Assuming you've installed Node-Red with `sudo npm install -g node-red` then all you need to do is:
+
+    $ sudo npm install -g node-red-contrib-openzwave
 
 This package has one sole dependency: [node-openzwave-shared](https://github.com/OpenZWave/node-openzwave-shared). This is a fork of node-openzwave *that links to OpenZWave as a shared library*, therefore you *need to have the OpenZWave library installed in your system beforehand*, using the operating system's package manager, or by compiling OpenZWave yourself. Please take a look [at the Installation section of node-openzwave-shared README](https://github.com/OpenZWave/node-openzwave-shared#install) for more details on this matter.
 
