@@ -17,7 +17,7 @@
 	limitations under the License.
 
 */
-
+var util = require('util');
 var UUIDPREFIX = "_macaddr_";
 var HOMENAME = "_homename_";
 
@@ -187,7 +187,7 @@ module.exports = function(RED) {
 		}
 		zwnodes[nodeid].ready = true;
 		//
-		for (comclass in zwnodes[nodeid]['classes']) {
+		for (var comclass in zwnodes[nodeid]['classes']) {
 			switch (comclass) {
 			case 0x25: // COMMAND_CLASS_SWITCH_BINARY
 			case 0x26: // COMMAND_CLASS_SWITCH_MULTILEVEL
@@ -201,10 +201,10 @@ module.exports = function(RED) {
 			var values = zwnodes[nodeid]['classes'][comclass];
 			if (debug) {
 				console.log('node%d: class %d', nodeid, comclass);
-				for (idx in values)
-					console.log('node%d:	 %s=%s', nodeid, values[idx]['label'], values[idx]['value']);
+				for (var idx in values)
+					console.log('node%d:	 %s', nodeid, JSON.stringify(values[idx], null, 4));
 			}
-		};
+		}
 		//
 		zwcallback('node ready', {nodeid: nodeid, nodeinfo: nodeinfo});
 	}
@@ -244,7 +244,7 @@ module.exports = function(RED) {
 		'notification' : notification,
 		'scan complete': scanComplete,
 		'controller command': controllerCommand
-	}
+	};
 
 	// ==========================
 	function ZWaveController(n) {
@@ -252,7 +252,6 @@ module.exports = function(RED) {
 		RED.nodes.createNode(this,n);
 		this.name = n.port;
 		this.port = n.port;
-		ozwConfig.port = n.port;
 		this.driverattempts = n.driverattempts;
 		this.pollinterval = n.pollinterval;
 		var node = this;
@@ -270,47 +269,46 @@ module.exports = function(RED) {
 
 		/* =============== OpenZWave events ================== */
 		Object.keys(ozwEvents).forEach(function (evt) {
-			if (debug) console.log(node.name+' addListener ' + evt);
+			if (debug) node.log(node.name + ' addListener for ' + evt );
 			ozwDriver.on(evt, ozwEvents[evt]);
-		})
+		});
 
 		/* =============== Node-Red events ================== */
 		this.on("close", function() {
-			if (debug) console.log('zwave-controller: close');
+			if (debug) node.log('zwave-controller: close');
 			// controller should also unbind from the C++ addon
-			if (ozwDriver) ozwDriver.removeAllListeners();
+			if (ozwDriver) {
+				node.log('bazookas======================');
+				ozwDriver.removeAllListeners();
+				node.log(ozwDriver.
+			}
 		});
 
 		zwsubscribe(node, 'driver failed', function(event, data) {
-			console.log('failed to start ZWave driver, is there a ZWave stick attached to %s ?', n.port);
+			node.log(util.format('failed to start ZWave driver, is there a ZWave stick attached to %s ?', n.port));
 		});
 
 		/* time to connect */
 		if (!ozwConnected) {
-			if (debug) console.log('ZWave Driver: connecting to %s', n.port);
+			if (debug) node.log('ZWave Driver: connecting to '+n.port);
 			ozwDriver.connect(n.port);
 			ozwConnected = true;
 		}
-	}
 
-	function exitHandler(options, err) {
-		if (ozwDriver && ozwConnected) {
-			console.log('disconnecting ZWave driver on '+ozwConfig.port);
-			ozwDriver.disconnect(ozwConfig.port);
+		function exitHandler(options, err) {
+			if (ozwDriver && ozwConnected) {
+				node.log('disconnecting ZWave driver from '+n.port);
+				ozwDriver.disconnect(n.port);
+			}
+			if (err) node.log(err.stack);
+			if (options.exit) process.exit();
 		}
-		if (options.cleanup) console.log('clean shutdown');
-		if (err) console.log(err.stack);
-		if (options.exit) process.exit();
+		// capture process exit to properly shut down OpenZWave
+		process.on('exit', exitHandler.bind(null,{}));
+		process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+		process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 	}
 
-	//do something when app is closing
-	process.on('exit', exitHandler.bind(null,{cleanup:true}));
-
-	//catches ctrl+c event
-	process.on('SIGINT', exitHandler.bind(null, {exit:true}));
-
-	//catches uncaught exceptions
-	process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 	//
 	RED.nodes.registerType("zwave-controller", ZWaveController);
 	//
@@ -325,7 +323,7 @@ module.exports = function(RED) {
 		var zwaveController = RED.nodes.getNode(config.controller);
 
 		if (!zwaveController) {
-			node.err('no ZWave controller class defined!');
+			node.error('no ZWave controller class defined!');
 			return;
 		}
 		/* =============== Node-Red events ================== */
@@ -334,7 +332,7 @@ module.exports = function(RED) {
 			node.status({fill:"red",shape:"ring",text:"disconnected"});
 			// remove all event subscriptions for this node
 			zwunsubscribe(this);
-			if (debug) console.log('zwave-in: close');
+			if (debug) node.log('zwave-in: close');
 		});
 		this.on("error", function() {
 			// what? there are no errors. there never were.
@@ -346,7 +344,7 @@ module.exports = function(RED) {
 			zwsubscribe(node, key, function(event, data) {
 				var msg = {'topic': 'zwave: '+event};
 				if (data) msg.payload = data;
-				if (debug) console.log('===> ZWAVE-IN injecting: %j', msg);
+				if (debug) node.log(util.format('%j', msg));
 				node.send(msg);
 			});
 		});
@@ -367,14 +365,14 @@ module.exports = function(RED) {
 		var zwaveController = RED.nodes.getNode(config.controller);
 
 		if (!zwaveController) {
-			node.err('no ZWave controller class defined!');
+			node.error('no ZWave controller class defined!');
 			return;
 		}
 
 		/* =============== Node-Red events ================== */
 		//
 		this.on("input", function(msg) {
-			if (debug) console.log("ZWaveOut#input: %j", msg);
+			if (debug) node.log(util.format("%j", msg));
 			var payload;
 			try {
 				payload = (typeof(msg.payload) === "string") ?
@@ -400,7 +398,7 @@ module.exports = function(RED) {
 
 			// setValue: for everything else
 			case /setValue/.test(msg.topic):
-				if (debug) console.log("ZWaveOut.setValue payload: %j", payload);
+				if (debug) node.log(util.format("ZWaveOut.setValue payload: %j", payload));
 				ozwDriver.setValue(
 					payload.nodeid,
 					(payload.cmdclass 	|| 37),// default cmdclass: on-off
@@ -420,14 +418,14 @@ module.exports = function(RED) {
 					typeof ozwDriver[msg.topic] === 'function' &&
 					payload.constructor.name === 'Array'
 					) {
-						console.log('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload);
+						node.log(util.format('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload));
 						try {
 							ozwDriver[msg.topic](payload.args);
 						} catch(err) {
 							node.warn('direct OpenZWave call to '+ msg.topic+' failed: '+err);
 						}
-					};
-			};
+					}
+			}
 		});
 
 		this.on("close", function() {
@@ -439,8 +437,8 @@ module.exports = function(RED) {
 		});
 
 		this.on("error", function() {
-			// there are. no. russians. in afghanistan.
 			node.status({fill:"yellow",shape:"ring",text:"error"});
+			node.log('zwave-out: error');
 		});
 
 		/* =============== OpenZWave events ================== */
@@ -456,4 +454,4 @@ module.exports = function(RED) {
 	//
 	RED.nodes.registerType("zwave-out", ZWaveOut);
 	//
-}
+};
