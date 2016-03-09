@@ -396,13 +396,13 @@ module.exports = function(RED) {
 			 * {"topic": "someOpenZWaveCommand", "payload": [1, 2, 3]}
 			 * */
 			default:
-				if (ozwDriver.hasOwnProperty(msg.topic) &&
+				if (msg.topic in ozwDriver &&
 					typeof ozwDriver[msg.topic] === 'function' &&
 					payload.constructor.name === 'Array'
 					) {
-						console.log('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload);
+						if (debug) console.log('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload);
 						try {
-							ozwDriver[msg.topic](payload.args);
+							ozwDriver[msg.topic].apply(ozwDriver, payload);
 						} catch(err) {
 							node.warn('direct OpenZWave call to '+ msg.topic+' failed: '+err);
 						}
