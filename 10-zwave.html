@@ -23,12 +23,20 @@
         <input type="text" id="node-config-input-port">
     </div>
     <div class="form-row">
+        <p style="text-align: center">Node-RED restart required after changing:</p>
+    </div>
+    <div class="form-row">
         <label for="node-config-input-driverattempts"><i class="icon-bookmark"></i> Driver attempts</label>
         <input type="text" id="node-config-input-driverattempts">
     </div>
     <div class="form-row">
-        <label for="node-config-input-pollinterval"><i class="icon-bookmark"></i> Poll interval</label>
-        <input type="text" id="node-config-input-pollinterval">
+        <label for="node-config-input-pollinterval"><i class="icon-bookmark"></i> Poll interval (ms)</label>
+        <input type="text" id="node-config-input-pollinterval" placeholder="10000 ms">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-allowunreadyupdates" style="vertical-align: top"><i class="icon-bookmark"></i> Pre-wake Updates</label>
+        <input type="checkbox" id="node-config-input-allowunreadyupdates" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-config-input-allowunreadyupdates" style="width: 70%;">Allow updates from devices not fully scanned?</label>
     </div>
 </script>
 
@@ -84,7 +92,8 @@
 			name:       {value:""},
             port: {value: "/dev/ttyUSB0", required:true},
             driverattempts: {value: 3,	required:true, validate:RED.validators.number()},
-            pollinterval:   {value: 500, required:true, validate:RED.validators.number()},
+            pollinterval:   {value: 10000, required:true, validate:RED.validators.number()},
+            allowunreadyupdates: {value: false, required:true}
         },
 		label: function() {
 			return("openzwave@"+this.port);
