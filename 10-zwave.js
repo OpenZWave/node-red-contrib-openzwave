@@ -37,6 +37,7 @@ module.exports = function(RED) {
 	var ozwDriver = null;
 	var ozwConnected = false;
 	var driverReadyStatus = false;
+	var allowunreadyupdates = false;
 	// array of all zwave nodes with internal hashmaps for their properties and their values
 	var zwnodes = {};
 	// Provide context.global access to node info.
@@ -148,7 +149,7 @@ module.exports = function(RED) {
 	function valueChanged(nodeid, comclass, valueId) {
 		// valueId: OpenZWave ValueID (struct) - not just a boolean
 		var oldst;
-		if (zwnodes[nodeid].ready) {
+		if (zwnodes[nodeid].ready || allowunreadyupdates) {
 			oldst = zwnodes[nodeid]['classes'][comclass][valueId.instance][valueId.index].value;
 			if (debug) {
 				console.log('node%d: changed: %d:%s:%s->%s', nodeid, comclass, valueId['label'],  oldst, valueId['value']);
@@ -255,6 +256,7 @@ module.exports = function(RED) {
 		this.port = n.port;
 		this.driverattempts = n.driverattempts;
 		this.pollinterval = n.pollinterval;
+		this.allowunreadyupdates = n.allowunreadyupdates;
 		var node = this;
 
 		// initialize OpenZWave upon boot or fetch it from the global reference
@@ -264,7 +266,8 @@ module.exports = function(RED) {
 			ozwDriver = new OpenZWave({
 				Logging:       debug,
 				ConsoleOutput: debug,
-				QueueLogLevel: 6
+				QueueLogLevel: (debug ? 8 : 6),
+				DriverMaxAttempts: this.driverattempts
 			});
 			/* =============== OpenZWave events ================== */
 			Object.keys(ozwEvents).forEach(function (evt) {
@@ -282,6 +285,11 @@ module.exports = function(RED) {
 
 		zwsubscribe(node, 'driver failed', function(event, data) {
 			console.log('failed to start ZWave driver, is there a ZWave stick attached to %s ?', n.port);
+		});
+
+		zwsubscribe(node, 'scan complete', function(event, data) {
+			ozwDriver.setPollInterval(this.pollinterval);
+			allowunreadyupdates = this.allowunreadyupdates;
 		});
 
 		/* time to connect */
