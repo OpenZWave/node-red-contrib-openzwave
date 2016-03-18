@@ -350,6 +350,7 @@ module.exports = function(RED) {
 	// =========================
 		RED.nodes.createNode(this, config);
 		this.name = config.name;
+		this.topic = config.topic;
 		//
 		var node = this;
 		var zwaveController = RED.nodes.getNode(config.controller);
@@ -404,14 +405,20 @@ module.exports = function(RED) {
 			 * {"topic": "someOpenZWaveCommand", "payload": [1, 2, 3]}
 			 * */
 			default:
-				if (msg.topic in ozwDriver &&
-					typeof ozwDriver[msg.topic] === 'function' &&
+				var topic;
+				if (msg.topic !== undefined && msg.topic !== "") {
+					topic = msg.topic;
+				} else {
+					topic = node.topic;
+				}
+				if (topic in ozwDriver &&
+					typeof ozwDriver[topic] === 'function' &&
 					payload.constructor.name === 'Array'
 					) {
-						if (debug) console.log('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload);
+						if (debug) console.log('attempting direct call to OpenZWave API: %s(%s)', topic, payload);
 						try {
-							var retval = ozwDriver[msg.topic].apply(ozwDriver, payload);
-							var newmsg = {'topic': msg.topic};
+							var retval = ozwDriver[topic].apply(ozwDriver, payload);
+							var newmsg = {'topic': topic};
 							if (retval) {
 								if (debug) console.log('Got return value, sending as payload');
 								newmsg.payload = retval;
@@ -421,7 +428,7 @@ module.exports = function(RED) {
 							}
 							node.send(newmsg);
 						} catch(err) {
-							node.warn('direct OpenZWave call to '+ msg.topic+' failed: '+err);
+							node.warn('direct OpenZWave call to '+ topic+' failed: '+err);
 						}
 					};
 			};
