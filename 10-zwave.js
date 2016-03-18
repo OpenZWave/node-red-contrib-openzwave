@@ -410,7 +410,16 @@ module.exports = function(RED) {
 					) {
 						if (debug) console.log('attempting direct call to OpenZWave API: %s(%s)', msg.topic, payload);
 						try {
-							ozwDriver[msg.topic].apply(ozwDriver, payload);
+							var retval = ozwDriver[msg.topic].apply(ozwDriver, payload);
+							var newmsg = {'topic': msg.topic};
+							if (retval) {
+								if (debug) console.log('Got return value, sending as payload');
+								newmsg.payload = retval;
+							} else {
+								if (debug) console.log('No return value but call successful, sending empty array');
+								newmsg.payload = [];
+							}
+							node.send(newmsg);
 						} catch(err) {
 							node.warn('direct OpenZWave call to '+ msg.topic+' failed: '+err);
 						}
@@ -443,5 +452,6 @@ module.exports = function(RED) {
 	}
 	//
 	RED.nodes.registerType("zwave-out", ZWaveOut);
+	RED.nodes.registerType("zwave-cmd", ZWaveOut);
 	//
 }

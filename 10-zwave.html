@@ -63,6 +63,17 @@
         <input type="text" id="node-input-controller">
     </div>
 </script>
+
+<script type="text/x-red" data-template-name="zwave-cmd">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
+        <input type="text" id="node-input-name" placeholder="ZWave status">
+    </div>                  
+    <div class="form-row">
+        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+        <input type="text" id="node-input-controller">
+    </div>
+</script>
  
 <!-- ==============================================================================================   -->
 
@@ -82,6 +93,13 @@
 		<br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
 		<br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
 </p>
+</script>
+
+<script type="text/x-red" data-help-name="zwave-cmd">
+    <p><b>Function node for directly calling OpenZWave functions.</b><br/>
+    Directly call OpenZWave functions<br/>
+    <b>msg.topic</b> is the name of the function, if not set in the node settings.<br/>
+    <b>msg.payload</b> must be an array containing the function call arguments, in the correct order.<br/></p>
 </script>
 
 <script type="text/javascript">
@@ -120,6 +138,18 @@
         },
         inputs:1,
         outputs:0,
+        icon: "zwave.png",
+        label: function() { return (this.name || ""); }
+    });
+    RED.nodes.registerType('zwave-cmd',{
+        category:'function',
+        color:  'pink',
+        defaults: {
+            name:       {value:""},
+            controller: {value:"", type:"zwave-controller"},
+        },
+        inputs:1,
+        outputs:1,
         icon: "zwave.png",
         label: function() { return (this.name || ""); }
     });
