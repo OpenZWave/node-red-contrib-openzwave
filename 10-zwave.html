@@ -100,7 +100,7 @@
 		}
     });
     RED.nodes.registerType('zwave-in',{
-        category:'input',
+        category:'home automation',
         color: 	'pink',
         defaults: {
 			name:       {value:""},
@@ -112,7 +112,7 @@
         label: function() { return (this.name || ""); }
     });
     RED.nodes.registerType('zwave-out',{
-        category:'output',
+        category:'home automation',
         color: 	'pink',
         defaults: {
 			name:       {value:""},
