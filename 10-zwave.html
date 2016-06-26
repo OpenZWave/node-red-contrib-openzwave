@@ -63,6 +63,121 @@
         <input type="text" id="node-input-controller">
     </div>
 </script>
+
+<script type="text/x-red" data-template-name="zwave-cmd">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
+        <input type="text" id="node-input-name" placeholder="ZWave status">
+    </div>                  
+    <div class="form-row">
+        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+        <input type="text" id="node-input-controller">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="icon-bookmark"></i> Topic</label>
+        <select id="node-input-topic">
+            <option value=""><i>use msg.topic</i></option>
+            <option value="setConfigParam">setConfigParam</option>
+            <option value="requestConfigParam">requestConfigParam</option>
+            <option value="requestAllConfigParams">requestAllConfigParams</option>
+            <option value="hardReset">hardReset</option>
+            <option value="softReset">softReset</option>
+            <option value="getControllerNodeId">getControllerNodeId</option>
+            <option value="getSUCNodeId">getSUCNodeId</option>
+            <option value="isPrimaryController">isPrimaryController</option>
+            <option value="isStaticUpdateController">isStaticUpdateController</option>
+            <option value="isBridgeController">isBridgeController</option>
+            <option value="getLibraryVersion">getLibraryVersion</option>
+            <option value="getLibraryTypeName">getLibraryTypeName</option>
+            <option value="getSendQueueCount">getSendQueueCount</option>
+            <option value="connect">connect</option>
+            <option value="disconnect">disconnect</option>
+            <option value="getNumGroups">getNumGroups</option>
+            <option value="getAssociations">getAssociations</option>
+            <option value="getMaxAssociations">getMaxAssociations</option>
+            <option value="getGroupLabel">getGroupLabel</option>
+            <option value="addAssociation">addAssociation</option>
+            <option value="removeAssociation">removeAssociation</option>
+            <option value="addNode">addNode</option>
+            <option value="removeNode">removeNode</option>
+            <option value="removeFailedNode">removeFailedNode</option>
+            <option value="hasNodeFailed">hasNodeFailed</option>
+            <option value="requestNodeNeighborUpdate">requestNodeNeighborUpdate</option>
+            <option value="assignReturnRoute">assignReturnRoute</option>
+            <option value="deleteAllReturnRoutes">deleteAllReturnRoutes</option>
+            <option value="sendNodeInformation">sendNodeInformation</option>
+            <option value="createNewPrimary">createNewPrimary</option>
+            <option value="receiveConfiguration">receiveConfiguration</option>
+            <option value="replaceFailedNode">replaceFailedNode</option>
+            <option value="transferPrimaryRole">transferPrimaryRole</option>
+            <option value="requestNetworkUpdate">requestNetworkUpdate</option>
+            <option value="replicationSend">replicationSend</option>
+            <option value="createButton">createButton</option>
+            <option value="deleteButton">deleteButton</option>
+            <option value="beginControllerCommand">beginControllerCommand</option>
+            <option value="cancelControllerCommand">cancelControllerCommand</option>
+            <option value="testNetworkNode">testNetworkNode</option>
+            <option value="testNetwork">testNetwork</option>
+            <option value="healNetworkNode">healNetworkNode</option>
+            <option value="healNetwork">healNetwork</option>
+            <option value="setNodeOn">setNodeOn</option>
+            <option value="setNodeOff">setNodeOff</option>
+            <option value="setNodeLevel">setNodeLevel</option>
+            <option value="switchAllOn">switchAllOn</option>
+            <option value="switchAllOff">switchAllOff</option>
+            <option value="pressButton">pressButton</option>
+            <option value="refreshNodeInfo">refreshNodeInfo</option>
+            <option value="requestNodeState">requestNodeState</option>
+            <option value="requestNodeDynamic">requestNodeDynamic</option>
+            <option value="getNodeLocation">getNodeLocation</option>
+            <option value="setNodeLocation">setNodeLocation</option>
+            <option value="getNodeName">getNodeName</option>
+            <option value="setNodeName">setNodeName</option>
+            <option value="getNodeManufacturerName">getNodeManufacturerName</option>
+            <option value="setNodeManufacturerName">setNodeManufacturerName</option>
+            <option value="getNodeProductName">getNodeProductName</option>
+            <option value="setNodeProductName">setNodeProductName</option>
+            <option value="getNodeMaxBaudRate">getNodeMaxBaudRate</option>
+            <option value="getNodeVersion">getNodeVersion</option>
+            <option value="getNodeBasic">getNodeBasic</option>
+            <option value="getNodeGeneric">getNodeGeneric</option>
+            <option value="getNodeManufacturerId">getNodeManufacturerId</option>
+            <option value="getNodeNeighbors">getNodeNeighbors</option>
+            <option value="getNodeProductId">getNodeProductId</option>
+            <option value="getNodeProductType">getNodeProductType</option>
+            <option value="getNodeSecurity">getNodeSecurity</option>
+            <option value="getNodeSpecific">getNodeSpecific</option>
+            <option value="getNodeType">getNodeType</option>
+            <option value="isNodeListeningDevice">isNodeListeningDevice</option>
+            <option value="isNodeFrequentListeningDevice">isNodeFrequentListeningDevice</option>
+            <option value="isNodeBeamingDevice">isNodeBeamingDevice</option>
+            <option value="isNodeRoutingDevice">isNodeRoutingDevice</option>
+            <option value="isNodeSecurityDevice">isNodeSecurityDevice</option>
+            <option value="setValue">setValue</option>
+            <option value="refreshValue">refreshValue</option>
+            <option value="setChangeVerified">setChangeVerified</option>
+            <option value="getNumSwitchPoints">getNumSwitchPoints</option>
+            <option value="clearSwitchPoints">clearSwitchPoints</option>
+            <option value="getSwitchPoint">getSwitchPoint</option>
+            <option value="setSwitchPoint">setSwitchPoint</option>
+            <option value="removeSwitchPoint">removeSwitchPoint</option>
+            <option value="enablePoll">enablePoll</option>
+            <option value="disablePoll">disablePoll</option>
+            <option value="isPolled">isPolled</option>
+            <option value="getPollInterval">getPollInterval</option>
+            <option value="setPollInterval">setPollInterval</option>
+            <option value="getPollIntensity">getPollIntensity</option>
+            <option value="setPollIntensity">setPollIntensity</option>
+            <option value="createScene">createScene</option>
+            <option value="removeScene">removeScene</option>
+            <option value="getScenes">getScenes</option>
+            <option value="addSceneValue">addSceneValue</option>
+            <option value="removeSceneValue">removeSceneValue</option>
+            <option value="sceneGetValues">sceneGetValues</option>
+            <option value="activateScene">activateScene</option>
+        </select>
+    </div>
+</script>
  
 <!-- ==============================================================================================   -->
 
@@ -82,6 +197,13 @@
 		<br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
 		<br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
 </p>
+</script>
+
+<script type="text/x-red" data-help-name="zwave-cmd">
+    <p><b>Function node for directly calling OpenZWave functions.</b><br/>
+    Directly call OpenZWave functions<br/>
+    <b>msg.topic</b> is the name of the function, if not set in the node settings.<br/>
+    <b>msg.payload</b> must be an array containing the function call arguments, in the correct order.<br/></p>
 </script>
 
 <script type="text/javascript">
@@ -120,6 +242,19 @@
         },
         inputs:1,
         outputs:0,
+        icon: "zwave.png",
+        label: function() { return (this.name || ""); }
+    });
+    RED.nodes.registerType('zwave-cmd',{
+        category:'function',
+        color:  'pink',
+        defaults: {
+            name:       {value:""},
+            controller: {value:"", type:"zwave-controller"},
+            topic: {value:""}
+        },
+        inputs:1,
+        outputs:1,
         icon: "zwave.png",
         label: function() { return (this.name || ""); }
     });
