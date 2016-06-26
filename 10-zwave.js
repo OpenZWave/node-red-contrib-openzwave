@@ -211,11 +211,10 @@ module.exports = function(RED) {
 		zwcallback('node ready', {nodeid: nodeid, nodeinfo: nodeinfo});
 	}
 
-	function nodeEvent(nodeid, evtcode, valueId, msg) {
+	function nodeEvent(nodeid, evtcode) {
 		zwcallback('node event', {
-				"nodeid": nodeid, "event": evtcode,
-				"cmdclass": valueId.comclass,  "cmdidx": valueId.index, "instance": valueId.instance,
-				"msg": msg});
+				"nodeid": nodeid, "event": evtcode
+    });
 	}
 
 	function notification(nodeid, notif, help) {
