@@ -29,22 +29,28 @@ Use this node to send arbitrary commands to the ZWave appliances.  For the momen
 
   For a full list of ZWave command classes, see <http://wiki.micasaverde.com/index.php/ZWave_Command_Classes>
 
-- **(New since version 1.1.0)** Experimental support for the *full OpenZWave API*:
+### Support for the **full OpenZWave API**:
+
   You can invoke ANY of the OpenZWave::Manager commands that are accepted by openzwave-shared (see [this source file for a list of supported commands](https://github.com/OpenZWave/node-openzwave-shared/blob/master/src/openzwave.cc#L59)). You should also consult the [official OpenZWave::Manager class documentation.](http://www.openzwave.com/dev/classOpenZWave_1_1Manager.html)
 
   The Node-Red message payload should contain an array of the command arguments **in the correct order**. For example:
 
-  * to add a new ZWave node to your network, you need to prepend the ZWave Home ID to the call as follows:
+  * to **add a new ZWave node** to your network, you need to prepend the ZWave Home ID to the `addNode()` management call as follows:
 
   `{"topic": "addNode", "payload": {"prependHomeId": true}}`
 
-  * to add a new *secure* ZWave node to your network, you'll also need to set the `_doSecurity` parameter to true as follows:
-
-  `{"topic": "addNode", "payload": {"prependHomeId": true, "args": [true]}}`
-
-  * to enable polling for ZWave node #5 for the on-off command class (0x25 == decimal 37). Notice that the [EnablePoll() command](http://www.openzwave.com/dev/classOpenZWave_1_1Manager.html#a50d795cb20a0bea55ecfd4a02c9777f3) does **not** need a HomeId as an argument, hence we don't need to add `prependHomeId` to the message payload:
+  * to **enable polling** for ZWave node #5 for the on-off command class (0x25 == decimal 37). Notice that the [EnablePoll() command](http://www.openzwave.com/dev/classOpenZWave_1_1Manager.html#a50d795cb20a0bea55ecfd4a02c9777f3) does **not** need a HomeId as an argument, hence we don't need to add `prependHomeId` to the message payload:
 
   `{"topic": "enablePoll", "payload": {"args": [5, 37]}}`
+
+  * to get **a node's statistics** by using the `getNodeStatistics()` call:
+
+  `{"topic": "getNodeStatistics", "payload": {"args": [2]}}`
+
+Most of the API calls in OpenZWave are *asynchronous*. This means that you don't get an immediate result value from the call itself, but you'll get notifications from their activity on the zwave-in input node. However, there are some direct API calls which *do return a value* (eg the `getNodeStatistics` is returning an object populated with the node's statistics: number of packets sent/received, transmission error counts etc).
+
+In this case, the result is appended to the message payload and forwarded to the output of the ZWave-out node. This is the *only* message that the output node is emitting.
+
 
 ##### - *zwave-in*
 

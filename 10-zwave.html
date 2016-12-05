@@ -15,7 +15,7 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-  
+
 -->
 <script type="text/x-red" data-template-name="zwave-controller">
     <div class="form-row">
@@ -57,70 +57,69 @@
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
         <input type="text" id="node-input-name" placeholder="ZWave status">
-    </div>                  
+    </div>
     <div class="form-row">
         <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
         <input type="text" id="node-input-controller">
     </div>
 </script>
- 
+
 <!-- ==============================================================================================   -->
 
 <script type="text/x-red" data-help-name="zwave-in">
     <p><b>Input node for ZWave events.</b><br/>
-	Fires node-red events when a ZWave ValueID is changed. See OpenZWave documentation on ValueIDs.</p>
+  Fires node-red events when a ZWave ValueID is changed. See OpenZWave documentation on ValueIDs.</p>
 </script>
 
 <script type="text/x-red" data-help-name="zwave-out">
     <p><b>Output node for ZWave commands.</b><br/>
-	Use this to control individual ZWave devices. See OpenZWave documentation on ValueIDs.<br/>
-	<b>msg.topic</b> can be: <b>setLevel, setValue, switchOn, switchOff</b><br/>
-	<b>msg.payload</b> has these sub-elements:<br/>
-		<br/>&nbsp;&nbsp;<b>msg.payload.nodeId: (REQUIRED for all topics)</b> zwave node to send the command (eg. 2)
-		<br/>&nbsp;&nbsp;<b>msg.payload.cmdclass</b>(default:37) OZW command class in decimal (eg. 37 for switches, 38 for dimmers)
-		<br/>&nbsp;&nbsp;<b>msg.payload.cmdidx</b>(default: 0) command index (0 for most command classes, see OZW/Value.cpp)
-		<br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
-		<br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
+  Use this to control individual ZWave devices. See OpenZWave documentation on ValueIDs.<br/>
+  <b>msg.topic</b> can be: <b>setLevel, setValue, switchOn, switchOff</b><br/>
+  <b>msg.payload</b> has these sub-elements:<br/>
+    <br/>&nbsp;&nbsp;<b>msg.payload.nodeId: (REQUIRED for all topics)</b> zwave node to send the command (eg. 2)
+    <br/>&nbsp;&nbsp;<b>msg.payload.cmdclass</b>(default:37) OZW command class in decimal (eg. 37 for switches, 38 for dimmers)
+    <br/>&nbsp;&nbsp;<b>msg.payload.cmdidx</b>(default: 0) command index (0 for most command classes, see OZW/Value.cpp)
+    <br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
+    <br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
 </p>
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('zwave-controller', {
-        category: 'config',
-
-        defaults: {
-			name:       {value:""},
-            port: {value: "/dev/ttyUSB0", required:true},
-            driverattempts: {value: 3,	required:true, validate:RED.validators.number()},
-            pollinterval:   {value: 10000, required:true, validate:RED.validators.number()},
-            allowunreadyupdates: {value: false, required:true}
-        },
-		label: function() {
-			return("openzwave@"+this.port);
-		}
-    });
-    RED.nodes.registerType('zwave-in',{
-        category:'home automation',
-        color: 	'pink',
-        defaults: {
-			name:       {value:""},
-			controller: {value:"", type:"zwave-controller"},
-        },
-        inputs:0,
-        outputs:1,
-        icon: "zwave.png",
-        label: function() { return (this.name || ""); }
-    });
-    RED.nodes.registerType('zwave-out',{
-        category:'home automation',
-        color: 	'pink',
-        defaults: {
-			name:       {value:""},
-			controller: {value:"", type:"zwave-controller"},
-        },
-        inputs:1,
-        outputs:0,
-        icon: "zwave.png",
-        label: function() { return (this.name || ""); }
-    });
+  RED.nodes.registerType('zwave-controller', {
+    category: 'config',
+    defaults: {
+      name:       {value:""},
+      port: {value: "/dev/ttyUSB0", required:true},
+      driverattempts: {value: 3,  required:true, validate:RED.validators.number()},
+      pollinterval:   {value: 10000, required:true, validate:RED.validators.number()},
+      allowunreadyupdates: {value: false, required:true}
+    },
+    label: function() {
+      return("openzwave@"+this.port);
+    }
+  });
+  RED.nodes.registerType('zwave-in',{
+    category:'home automation',
+    color:   'pink',
+    defaults: {
+      name:       {value:""},
+      controller: {value:"", type:"zwave-controller"},
+    },
+    inputs:0,
+    outputs:1,
+    icon: "zwave.png",
+    label: function() { return (this.name || ""); }
+  });
+  RED.nodes.registerType('zwave-out',{
+    category:'home automation',
+    color:   'pink',
+    defaults: {
+      name:       {value:""},
+      controller: {value:"", type:"zwave-controller"},
+    },
+    inputs:1,
+    outputs:1,
+    icon: "zwave.png",
+    label: function() { return (this.name || ""); }
+  });
 </script>
