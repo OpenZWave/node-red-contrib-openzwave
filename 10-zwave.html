@@ -2,7 +2,7 @@
 
   OpenZWave nodes for IBM's Node-Red
   https://github.com/ekarak/node-red-contrib-openzwave
-  (c) 2014, Elias Karakoulakis <elias.karakoulakis@gmail.com>
+  (c) 2014-2017, Elias Karakoulakis <elias.karakoulakis@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -38,9 +38,40 @@
         <input type="checkbox" id="node-config-input-allowunreadyupdates" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-config-input-allowunreadyupdates" style="width: 70%;">Allow updates from devices not fully scanned?</label>
     </div>
+    <div class="form-row">
+        <label for="node-config-input-logging" style="vertical-align: top"><i class="icon-bookmark"></i> Logging</label>
+        <select id="node-config-input-logging" style="width:70%">
+          <option value="off">Off</option>
+          <option value="minimal">Minimal</option>
+          <option value="full">Full</<option>
+        </select>
+    </div>
 </script>
-
-
+<script type="text/x-red" data-help-name="zwave-controller">
+  <ul>
+    <li><b><i class="icon-bookmark"></i> Port:</b>
+      The serial port your ZWave controller stick is attached to. Usual values:
+      <pre>/dev/ttyUSB0</pre> in Linux,  <pre>/dev/cu.usbmodem1411</pre> in MacOSX, <pre>\\\\.\\COM3</pre> in Windows.
+    </li>
+    <li><b><i class="icon-bookmark"></i> Driver attempts:</b>
+      How many attempts should OpenZWave make to set up the controller.
+    </li>
+    <li><b><i class="icon-bookmark"></i> Poll interval:</b>
+      How often to poll devices that do not offer automatic feedback on their status, in milliseconds.
+    </li>
+    <li><b><i class="icon-bookmark"></i> Pre-wake Updates:</b>
+      Allow updates from devices before OpenZWave has finished initialising
+    </li>
+    <li><b><i class="icon-bookmark"></i> Logging:</b>
+      Set the logging level for OpenZWave on Node-Red logs.
+      <ul>
+        <li>Off: radio silence</li>
+        <li>Minimal: only warnings and errors</li>
+        <li>Full: debug logging</li>
+      </ul>
+      Please note that a Node-Red restart is required for OpenZWave to pick up any changes in the logging level.
+    </li>
+</script>
 <script type="text/x-red" data-template-name="zwave-in">
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
@@ -50,7 +81,6 @@
         <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
         <input type="text" id="node-input-controller">
     </div>
-
 </script>
 
 <script type="text/x-red" data-template-name="zwave-out">
@@ -92,7 +122,8 @@
       port: {value: "/dev/ttyUSB0", required:true},
       driverattempts: {value: 3,  required:true, validate:RED.validators.number()},
       pollinterval:   {value: 10000, required:true, validate:RED.validators.number()},
-      allowunreadyupdates: {value: false, required:true}
+      allowunreadyupdates: {value: false, required:true},
+      logging: {value: true, required:false}
     },
     label: function() {
       return("openzwave@"+this.port);
