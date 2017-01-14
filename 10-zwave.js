@@ -17,9 +17,15 @@
   limitations under the License.
 
 */
+var fs = require('fs');
+var path = require('path');
 var util = require('util');
 var UUIDPREFIX = "_macaddr_";
 var HOMENAME = "_homename_";
+
+var ozwsharedpath = path.dirname(path.dirname(require.resolve('openzwave-shared')));
+var ozwsharedpackage = JSON.parse(fs.readFileSync(ozwsharedpath+"/package.json"));
+var thispackage = JSON.parse(fs.readFileSync(__dirname+'/package.json'));
 
 require('getmac').getMac(function(err, macAddress) {
   if (err) throw err;
@@ -34,9 +40,10 @@ module.exports = function(RED) {
     }
   }
 
-  RED.log.info('OpenZWave module: ' + require.resolve('openzwave-shared'));
-  var OpenZWave = require('openzwave-shared');
+  RED.log.info('node-red-contrib-openzwave: ' + thispackage.version);
+  RED.log.info('openzwave-shared: ' + ozwsharedpackage.version);
 
+  var OpenZWave = require('openzwave-shared');
   var ozwConfig = {};
   var ozwDriver = null;
   var ozwConnected = false;
@@ -56,10 +63,10 @@ module.exports = function(RED) {
   function zwsubscribe(nrNode, event, callback) {
     if (!(event in nrNodeSubscriptions)) {
       nrNodeSubscriptions[event] = {};
-      nrNodeSubscriptions[event][nrNode.id] = callback;
-      log('full', util.format('%s(%s) subscribed to \"%s\"', nrNode.type,
-        nrNode.id, event));
     }
+    nrNodeSubscriptions[event][nrNode.id] = callback;
+    log('full', util.format('%s(%s) subscribed to \"%s\"', nrNode.type,
+        nrNode.id, event));
   }
 
   // and unsubscribe
@@ -89,26 +96,42 @@ module.exports = function(RED) {
       var nrNodes = nrNodeSubscriptions[event];
       // an event might be subscribed by multiple NR nodes
       for (var nrnid in nrNodes) {
-        if (nrNodes.hasOwnProperty(nrnid)) {
-          var nrNode = RED.nodes.getNode(nrnid);
-          log('full', "\t\\==> " + nrnid + " event:" + event);
-          nrNodes[nrnid].call(nrNode, event, arghash);
-          updateNodeRedStatus(nrNode);
+        var nrNode = RED.nodes.getNode(nrnid);
+        log('full', "\t\\==> " + nrnid + " event:" + event);
+        nrNodes[nrnid].call(nrNode, event, arghash);
+        // update the node status accordingly
+        var status = {fill: "yellow",  text: event, shape: "ring"};
+        switch(event) {
+          case 'node event':
+          case 'node ready':
+            status.text = util.format('node %j: %s', arghash.nodeid, event);
+            break;
+          case 'value changed':
+            status.text = util.format('node %j: %s', arghash.nodeid, event);
+            break;
+          case 'controller command': //, function(nodeId, ctrlState, ctrlError, helpmsg)
+            status.text = util.format('%j', arghash.helpmsg);
+            break;
+          default:
+            break;
         }
+        updateNodeRedStatus(nrNode, status);
+        setTimeout(function() {
+          updateNodeRedStatus(nrNode);
+        }, 500);
       }
     }
   }
 
   // update the NR node's status indicator
-  function updateNodeRedStatus(nrNode) {
+  function updateNodeRedStatus(nrNode, options) {
     // update NR node status
-    nrNode.status({
+    nrNode.status(options || {
       fill: driverReadyStatus ? "green" : "red",
       text: driverReadyStatus ? "connected" : "disconnected",
       shape: "ring"
     });
   }
-
 
   function driverReady(homeid) {
     driverReadyStatus = true;
@@ -226,7 +249,7 @@ module.exports = function(RED) {
       }
       ozwnode.ready = true;
       //
-      log('full', 'only/|R|W| (nodeid-cmdclass-instance-index): type : current state');
+      log('full', 'only|R|W| (nodeid-cmdclass-instance-index): type : current state');
       for (var comclass in ozwnode['classes']) {
         switch (comclass) {
           case 0x25: // COMMAND_CLASS_SWITCH_BINARY
@@ -321,7 +344,7 @@ module.exports = function(RED) {
         UserPath: RED.settings.userDir,
         DriverMaxAttempts: cfg.driverattempts
       });
-      /* =============== OpenZWave events ================== */
+      /* =========== bind to low-level OpenZWave events ============== */
       Object.keys(ozwEvents).forEach(function(evt) {
         log('full', node.name + ' addListener ' + evt);
         ozwDriver.on(evt, ozwEvents[evt]);
@@ -372,22 +395,14 @@ module.exports = function(RED) {
     /* =============== Node-Red events ================== */
     this.on("close", function() {
       // set zwave node status as disconnected
-      node.status({
-        fill: "red",
-        shape: "ring",
-        text: "disconnected"
-      });
+      updateNodeRedStatus(node, {fill: "red", shape: "ring", text: "disconnected"});
       // remove all event subscriptions for this node
       zwunsubscribe(this);
       log('full', 'zwave-in: close');
     });
     this.on("error", function() {
       // what? there are no errors. there never were.
-      node.status({
-        fill: "yellow",
-        shape: "ring",
-        text: "error"
-      });
+      updateNodeRedStatus(node, {fill: "yellow",shape: "ring", text: "error"});
     });
 
     /* =============== OpenZWave events ================== */
@@ -487,7 +502,7 @@ module.exports = function(RED) {
 
     this.on("close", function() {
       // set zwave node status as disconnected
-      node.status({
+      updateNodeRedStatus(node, {
         fill: "red",
         shape: "ring",
         text: "disconnecting"
@@ -498,8 +513,7 @@ module.exports = function(RED) {
     });
 
     this.on("error", function() {
-      // there are. no. russians. in afghanistacfg.
-      node.status({
+      updateNodeRedStatus(node, {
         fill: "yellow",
         shape: "ring",
         text: "error"
@@ -509,9 +523,11 @@ module.exports = function(RED) {
     /* =============== OpenZWave events ================== */
     Object.keys(ozwEvents).forEach(function(key) {
       zwsubscribe(node, key, function(event, data) {
-        // nuttin ;) we merely subscribe to have the NR node status update :)
+        // nuttin'! callback exists simply to update the node status
       });
     });
+
+
 
     // set initial node status upon creation
     updateNodeRedStatus(node);

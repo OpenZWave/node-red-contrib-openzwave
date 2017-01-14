@@ -18,19 +18,29 @@ $ npm install node-red-openzwave-shared
 
 #### Nodes added to Node-Red by this package
 
-##### - *zwave-controller*
 
-a unique CONFIG node that holds configuration for initializing OpenZWave and will act as the encapsulator for OZW access. As a node-red 'config' node, it cannot be added to a graph, but it acts as a singleton object that gets created in the the background when you add 'zwave-in' or 'zwave-out' nodes and configure them to point to a ZWave USB controller (usually /dev/ttyUSB0). It also holds the state for the openZWave library which is useful across flow edits (you surely don't want to wait for OpenZWave to reinitialise when you change your flows!)
+##### - **zwave-controller**
+
+This is a [config node](http://nodered.org/docs/creating-nodes/config-nodes) whose job is to hold the necessary data for initializing OpenZWave and act as the encapsulator for access to the OpenZWave API. When you add a 'zwave-in' or 'zwave-out' into your flows, a singleton instance of this node is created in the background, and you need to click on the 'controller' icon, in order  to *configure where your ZWave USB controller is connected to* (for example `/dev/ttyUSB0` in Linux) and define a logging level.
 
 
-##### - *zwave-in*
+##### - **zwave-in**
 
 A node that emits ZWave events as they are emitted from the ZWave controller. Use this node to get status feedback about what is happening in real time in your ZWave network. For example, the following message is injected into the NR flow when ZWave node #9, a binary switch, is turned on:
 
-`{"topic":"zwave: value changed","payload":{"nodeid":9,"cmdclass":37,"instance":1,"cmdidx":0,"oldState":false,"currState":true}}`
+```
+{ "topic":"zwave: value changed",
+  "payload":{
+    "nodeid":9,
+    "cmdclass":37,
+    "instance":1,
+    "cmdidx":0,
+    "oldState":false,
+    "currState":true}}
+```
 
 
-##### - *zwave-out*
+##### - **zwave-out**
 
 Use this node to send arbitrary commands to the ZWave appliances.  The four most common commands you're going to use are:
 
@@ -55,7 +65,7 @@ Use this node to send arbitrary commands to the ZWave appliances.  The four most
   You can invoke the full `OpenZWave::Manager` API, as long as the command is supported by openzwave-shared (see [this source file for a list of supported commands](https://github.com/OpenZWave/node-openzwave-shared/blob/master/src/openzwave.cc#L59)). You should also consult the [official OpenZWave::Manager class documentation.](http://www.openzwave.com/dev/classOpenZWave_1_1Manager.html)
 
   The Node-Red message should have
-  - **topic**:  set to the OpenZWave::Manager method name (eg. `healNetwork`)
+  - **topic**:  set to the OpenZWave::Manager method name (eg. `healNetwork`). Method names are the same as in the official API, except the first letter is in lower case.
   - **payload**: an array of the command arguments **in the correct order**.
 
 Some examples:
