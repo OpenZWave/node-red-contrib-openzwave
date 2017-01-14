@@ -101,6 +101,7 @@ module.exports = function(RED) {
         nrNodes[nrnid].call(nrNode, event, arghash);
         // update the node status accordingly
         var status = {fill: "yellow",  text: event, shape: "ring"};
+        var transient = true;
         switch(event) {
           case 'node event':
           case 'node ready':
@@ -109,16 +110,20 @@ module.exports = function(RED) {
           case 'value changed':
             status.text = util.format('node %j: %s', arghash.nodeid, event);
             break;
-          case 'controller command': //, function(nodeId, ctrlState, ctrlError, helpmsg)
-            status.text = util.format('%j', arghash.helpmsg);
+          case 'notification':
+          case 'controller command':
+            transient = false;
+            status.text = util.format('%s', arghash.help);
             break;
           default:
             break;
         }
         updateNodeRedStatus(nrNode, status);
-        setTimeout(function() {
-          updateNodeRedStatus(nrNode);
-        }, 500);
+        if (transient) {
+          setTimeout(function() {
+            updateNodeRedStatus(nrNode);
+          }, 500);
+        }
       }
     }
   }
