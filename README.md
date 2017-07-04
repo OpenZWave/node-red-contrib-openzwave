@@ -13,7 +13,7 @@ So, first make sure you have the OpenZWave library installed on your system, [as
 
 ```sh
 $ cd ~/.node-red
-$ npm install node-red-openzwave-shared
+$ npm install node-red-contrib-openzwave
 ```
 
 #### Nodes added to Node-Red by this package
