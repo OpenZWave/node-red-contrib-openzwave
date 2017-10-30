@@ -359,6 +359,8 @@ module.exports = function(RED) {
     /* =============== Node-Red events ================== */
     this.on("close", function() {
       log('full', 'zwave-controller: close');
+      // write out zwcfg_homeid.xml to disk
+      ozwDriver.writeConfig();
       // controller should also unbind from the C++ addon
       if (ozwDriver) ozwDriver.removeAllListeners();
     });
@@ -461,13 +463,11 @@ module.exports = function(RED) {
         case /switchOff/.test(msg.topic):
           ozwDriver.setValue(payload.nodeid, 37, 1, 0, false);
           break;
-
-          // setLevel: for dimmers
+        // setLevel: for dimmers
         case /setLevel/.test(msg.topic):
           ozwDriver.setValue(payload.nodeid, 38, 1, 0, payload.value);
           break;
-
-          // setValue: for everything else
+        // setValue: for everything else
         case /setValue/.test(msg.topic):
           log('full', util.format("ZWaveOut.setValue payload: %j", payload));
           ozwDriver.setValue(
@@ -477,7 +477,6 @@ module.exports = function(RED) {
             payload.value
           );
           break;
-
           /* EXPERIMENTAL: send basically every available command down
            * to OpenZWave, just name the function in the message topic
            * and pass in the arguments as "payload.args" as an array:
@@ -531,8 +530,6 @@ module.exports = function(RED) {
         // nuttin'! callback exists simply to update the node status
       });
     });
-
-
 
     // set initial node status upon creation
     updateNodeRedStatus(node);
