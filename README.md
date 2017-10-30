@@ -16,6 +16,38 @@ $ cd ~/.node-red
 $ npm install node-red-contrib-openzwave
 ```
 
+#### Persisting ZWave configuration in zwcfg_xxx.xml files
+
+Its more than probable that you have included *battery-powered* ZWave nodes in your installation.
+When you include battery devices (using the 'addNode()' method), OpenZWave needs to *persist* their configuration to a file,
+otherwise all metadata about them (make and model, available command classes etc) **will be lost** when you restart node.
+Therefore you need to tell OpenZWave to *write out the known facts about the ZWave nodes* into a XML file. You can do that
+by using `writeConfig()` to store that XML file whenever you add/edit/remove nodes.
+
+This file is named `zwcfg_xxx.xml` where the xxx is a hex number corresponding to your ZWave controller's unique home ID.
+The necessary config setting is **UserPath** and its value defines the location of that XML file. The value is printed out
+upon loading up the NodeJS module:
+```
+Initialising OpenZWave 1.4.79 binary addon for Node.JS.
+        OpenZWave Security API is ENABLED
+        ZWave device db    : /usr/etc/openzwave
+        User settings path : /home/pi/.node-red
+```
+
+In the example above, the [node-red-contrib-openzwave](https://github.com/OpenZWave/node-red-contrib-openzwave) plugin           
+is initialising the UserPath to be the user settings directory for NodeRed.
+
+```js
+      ozwDriver = new OpenZWave({
+        Logging: (logging != "off"),
+        ConsoleOutput: (logging != "off"),
+        QueueLogLevel: ((logging == "full") ? 8 : 6),
+        UserPath: RED.settings.userDir,
+        DriverMaxAttempts: cfg.driverattempts
+      });
+```
+The value for `userDir` can be overridden in the settings.js file used by Node-Red.
+
 #### Nodes added to Node-Red by this package
 
 
