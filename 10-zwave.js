@@ -291,6 +291,13 @@ module.exports = function(RED) {
     });
   }
 
+  function sceneEvent(nodeid, scene) {
+    zwcallback('scene event', {
+      "nodeid": nodeid,
+      "scene": scene
+    });
+  }
+
   function notification(nodeid, notif, help) {
     log('full', util.format('node %d: %s', nodeid, help));
     zwcallback('notification', {
@@ -323,6 +330,7 @@ module.exports = function(RED) {
     'node added': nodeAdded,
     'node ready': nodeReady,
     'node event': nodeEvent,
+	'scene event': sceneEvent,
     'value added': valueAdded,
     'value changed': valueChanged,
     'value removed': valueRemoved,
@@ -347,7 +355,8 @@ module.exports = function(RED) {
         ConsoleOutput: (logging != "off"),
         QueueLogLevel: ((logging == "full") ? 8 : 6),
         UserPath: RED.settings.userDir,
-        DriverMaxAttempts: cfg.driverattempts
+        DriverMaxAttempts: cfg.driverattempts,
+		NetworkKey: cfg.networkkey||""
       });
       /* =========== bind to low-level OpenZWave events ============== */
       Object.keys(ozwEvents).forEach(function(evt) {

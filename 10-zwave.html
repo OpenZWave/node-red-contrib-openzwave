@@ -18,139 +18,174 @@
 
 -->
 <script type="text/x-red" data-template-name="zwave-controller">
-    <div class="form-row">
-        <label for="node-config-input-port"><i class="icon-bookmark"></i> Port</label>
-        <input type="text" id="node-config-input-port">
-    </div>
-    <div class="form-row">
-        <p style="text-align: center">Node-RED restart required after changing:</p>
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-driverattempts"><i class="icon-bookmark"></i> Driver attempts</label>
-        <input type="text" id="node-config-input-driverattempts">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-pollinterval"><i class="icon-bookmark"></i> Poll interval (ms)</label>
-        <input type="text" id="node-config-input-pollinterval" placeholder="10000 ms">
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-allowunreadyupdates" style="vertical-align: top"><i class="icon-bookmark"></i> Pre-wake Updates</label>
-        <input type="checkbox" id="node-config-input-allowunreadyupdates" style="display: inline-block; width: auto; vertical-align: top;">
-        <label for="node-config-input-allowunreadyupdates" style="width: 70%;">Allow updates from devices not fully scanned?</label>
-    </div>
-    <div class="form-row">
-        <label for="node-config-input-logging" style="vertical-align: top"><i class="icon-bookmark"></i> Logging</label>
-        <select id="node-config-input-logging" style="width:70%">
+	<div class="form-row">
+		<label for="node-config-input-port"><i class="icon-bookmark"></i> Port</label>
+		<input type="text" id="node-config-input-port">
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-networkkey"><i class="icon-bookmark"></i> Network Key</label>
+		<input type="text" id="node-config-input-networkkey">
+	</div>
+	<div class="form-row">
+		<p style="text-align: center">Node-RED restart required after changing:</p>
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-driverattempts"><i class="icon-bookmark"></i> Driver attempts</label>
+		<input type="text" id="node-config-input-driverattempts">
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-pollinterval"><i class="icon-bookmark"></i> Poll interval (ms)</label>
+		<input type="text" id="node-config-input-pollinterval" placeholder="10000 ms">
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-allowunreadyupdates" style="vertical-align: top"><i class="icon-bookmark"></i> Pre-wake Updates</label>
+		<input type="checkbox" id="node-config-input-allowunreadyupdates" style="display: inline-block; width: auto; vertical-align: top;">
+		<label for="node-config-input-allowunreadyupdates" style="width: 70%;">Allow updates from devices not fully scanned?</label>
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-logging" style="vertical-align: top"><i class="icon-bookmark"></i> Logging</label>
+		<select id="node-config-input-logging" style="width:70%">
           <option value="off">Off</option>
           <option value="minimal">Minimal</option>
           <option value="full">Full</<option>
         </select>
-    </div>
+	</div>
 </script>
 <script type="text/x-red" data-help-name="zwave-controller">
-  <ul>
-    <li><b><i class="icon-bookmark"></i> Port:</b>
-      The serial port your ZWave controller stick is attached to. Usual values:
-      <pre>/dev/ttyUSB0</pre> in Linux,  <pre>/dev/cu.usbmodem1411</pre> in MacOSX, <pre>\\\\.\\COM3</pre> in Windows.
-    </li>
-    <li><b><i class="icon-bookmark"></i> Driver attempts:</b>
-      How many attempts should OpenZWave make to set up the controller.
-    </li>
-    <li><b><i class="icon-bookmark"></i> Poll interval:</b>
-      How often to poll devices that do not offer automatic feedback on their status, in milliseconds.
-    </li>
-    <li><b><i class="icon-bookmark"></i> Pre-wake Updates:</b>
-      Allow updates from devices before OpenZWave has finished initialising
-    </li>
-    <li><b><i class="icon-bookmark"></i> Logging:</b>
-      Set the logging level for OpenZWave on Node-Red logs.
-      <ul>
-        <li>Off: radio silence</li>
-        <li>Minimal: only warnings and errors</li>
-        <li>Full: debug logging</li>
-      </ul>
-      Please note that a Node-Red restart is required for OpenZWave to pick up any changes in the logging level.
-    </li>
+	<ul>
+		<li><b><i class="icon-bookmark"></i> Port:</b> The serial port your ZWave controller stick is attached to. Usual values:
+			<pre>/dev/ttyUSB0</pre> in Linux, <pre>/dev/cu.usbmodem1411</pre> in MacOSX, <pre>\\\\.\\COM3</pre> in Windows.
+		</li>
+		<li><b><i class="icon-bookmark"></i> Network Key:</b> The network key (secret) is optional, string of 16 bytes in hex format, separated by commas, "0xCA,0xFE,0xBA,0xBE,.... " to use with secure zwave devices.
+		</li>
+		<li><b><i class="icon-bookmark"></i> Driver attempts:</b> How many attempts should OpenZWave make to set up the controller.
+		</li>
+		<li><b><i class="icon-bookmark"></i> Poll interval:</b> How often to poll devices that do not offer automatic feedback on their status, in milliseconds.
+		</li>
+		<li><b><i class="icon-bookmark"></i> Pre-wake Updates:</b> Allow updates from devices before OpenZWave has finished initialising
+		</li>
+		<li><b><i class="icon-bookmark"></i> Logging:</b> Set the logging level for OpenZWave on Node-Red logs.
+			<ul>
+				<li>Off: radio silence</li>
+				<li>Minimal: only warnings and errors</li>
+				<li>Full: debug logging</li>
+			</ul>
+			Please note that a Node-Red restart is required for OpenZWave to pick up any changes in the logging level.
+		</li>
 </script>
 <script type="text/x-red" data-template-name="zwave-in">
-    <div class="form-row">
-        <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
-        <input type="text" id="node-input-name" placeholder="ZWave command">
-    </div>
-    <div class="form-row">
-        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
-        <input type="text" id="node-input-controller">
-    </div>
+	<div class="form-row">
+		<label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
+		<input type="text" id="node-input-name" placeholder="ZWave command">
+	</div>
+	<div class="form-row">
+		<label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+		<input type="text" id="node-input-controller">
+	</div>
 </script>
 
 <script type="text/x-red" data-template-name="zwave-out">
-    <div class="form-row">
-        <label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
-        <input type="text" id="node-input-name" placeholder="ZWave status">
-    </div>
-    <div class="form-row">
-        <label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
-        <input type="text" id="node-input-controller">
-    </div>
+	<div class="form-row">
+		<label for="node-input-name"><i class="icon-tag"></i> Node Name</label>
+		<input type="text" id="node-input-name" placeholder="ZWave status">
+	</div>
+	<div class="form-row">
+		<label for="node-input-controller"><i class="icon-bookmark"></i> Controller</label>
+		<input type="text" id="node-input-controller">
+	</div>
 </script>
 
 <!-- ==============================================================================================   -->
 
 <script type="text/x-red" data-help-name="zwave-in">
-    <p><b>Input node for ZWave events.</b><br/>
-  Fires node-red events when a ZWave ValueID is changed. See OpenZWave documentation on ValueIDs.</p>
+	<p><b>Input node for ZWave events.</b><br/> Fires node-red events when a ZWave ValueID is changed. See OpenZWave documentation on ValueIDs.</p>
 </script>
 
 <script type="text/x-red" data-help-name="zwave-out">
-    <p><b>Output node for ZWave commands.</b><br/>
-  Use this to control individual ZWave devices. See OpenZWave documentation on ValueIDs.<br/>
-  <b>msg.topic</b> can be: <b>setLevel, setValue, switchOn, switchOff</b><br/>
-  <b>msg.payload</b> has these sub-elements:<br/>
-    <br/>&nbsp;&nbsp;<b>msg.payload.nodeId: (REQUIRED for all topics)</b> zwave node to send the command (eg. 2)
-    <br/>&nbsp;&nbsp;<b>msg.payload.cmdclass</b>(default:37) OZW command class in decimal (eg. 37 for switches, 38 for dimmers)
-    <br/>&nbsp;&nbsp;<b>msg.payload.cmdidx</b>(default: 0) command index (0 for most command classes, see OZW/Value.cpp)
-    <br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
-    <br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
-</p>
+	<p><b>Output node for ZWave commands.</b><br/> Use this to control individual ZWave devices. See OpenZWave documentation on ValueIDs.<br/>
+		<b>msg.topic</b> can be: <b>setLevel, setValue, switchOn, switchOff</b><br/>
+		<b>msg.payload</b> has these sub-elements:<br/>
+		<br/>&nbsp;&nbsp;<b>msg.payload.nodeId: (REQUIRED for all topics)</b> zwave node to send the command (eg. 2)
+		<br/>&nbsp;&nbsp;<b>msg.payload.cmdclass</b>(default:37) OZW command class in decimal (eg. 37 for switches, 38 for dimmers)
+		<br/>&nbsp;&nbsp;<b>msg.payload.cmdidx</b>(default: 0) command index (0 for most command classes, see OZW/Value.cpp)
+		<br/>&nbsp;&nbsp;<b>msg.payload.instance</b>(default: 1) for multi-instance devices (like FGS-211)
+		<br/>&nbsp;&nbsp;<b>msg.payload.value</b>(default: 0) value to set (eg. 0/1 for switches, 100 to set dimmers to 100% etc)
+	</p>
 </script>
 
 <script type="text/javascript">
-  RED.nodes.registerType('zwave-controller', {
-    category: 'config',
-    defaults: {
-      name:       {value:""},
-      port: {value: "/dev/ttyUSB0", required:true},
-      driverattempts: {value: 3,  required:true, validate:RED.validators.number()},
-      pollinterval:   {value: 10000, required:true, validate:RED.validators.number()},
-      allowunreadyupdates: {value: false, required:true},
-      logging: {value: true, required:false}
-    },
-    label: function() {
-      return("openzwave@"+this.port);
-    }
-  });
-  RED.nodes.registerType('zwave-in',{
-    category:'home automation',
-    color:   'pink',
-    defaults: {
-      name:       {value:""},
-      controller: {value:"", type:"zwave-controller"},
-    },
-    inputs:0,
-    outputs:1,
-    icon: "zwave.png",
-    label: function() { return (this.name || ""); }
-  });
-  RED.nodes.registerType('zwave-out',{
-    category:'home automation',
-    color:   'pink',
-    defaults: {
-      name:       {value:""},
-      controller: {value:"", type:"zwave-controller"},
-    },
-    inputs:1,
-    outputs:1,
-    icon: "zwave.png",
-    label: function() { return (this.name || ""); }
-  });
+	RED.nodes.registerType('zwave-controller', {
+		category: 'config',
+		defaults: {
+			name: {
+				value: ""
+			},
+			port: {
+				value: "/dev/ttyUSB0",
+				required: true
+			},
+			logging: {
+				value: true,
+				required: false
+			},
+			networkkey: {
+				value: "",
+				required: false
+			},
+			pollinterval: {
+				value: 10000,
+				required: true,
+				validate: RED.validators.number()
+			},
+			allowunreadyupdates: {
+				value: false,
+				required: true
+			},
+			logging: {
+				value: true,
+				required: false
+			}
+		},
+		label: function() {
+			return ("openzwave@" + this.port);
+		}
+	});
+	RED.nodes.registerType('zwave-in', {
+		category: 'home automation',
+		color: 'pink',
+		defaults: {
+			name: {
+				value: ""
+			},
+			controller: {
+				value: "",
+				type: "zwave-controller"
+			},
+		},
+		inputs: 0,
+		outputs: 1,
+		icon: "zwave.png",
+		label: function() {
+			return (this.name || "");
+		}
+	});
+	RED.nodes.registerType('zwave-out', {
+		category: 'home automation',
+		color: 'pink',
+		defaults: {
+			name: {
+				value: ""
+			},
+			controller: {
+				value: "",
+				type: "zwave-controller"
+			},
+		},
+		inputs: 1,
+		outputs: 1,
+		icon: "zwave.png",
+		label: function() {
+			return (this.name || "");
+		}
+	});
 </script>
