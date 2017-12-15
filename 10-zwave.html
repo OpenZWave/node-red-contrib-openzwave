@@ -22,6 +22,10 @@
         <label for="node-config-input-port"><i class="icon-bookmark"></i> Port</label>
         <input type="text" id="node-config-input-port">
     </div>
+	<div class="form-row">
+		<label for="node-config-input-networkkey"><i class="icon-bookmark"></i> Network Key</label>
+		<input type="text" id="node-config-input-networkkey">
+	</div>
     <div class="form-row">
         <p style="text-align: center">Node-RED restart required after changing:</p>
     </div>
@@ -53,6 +57,9 @@
       The serial port your ZWave controller stick is attached to. Usual values:
       <pre>/dev/ttyUSB0</pre> in Linux,  <pre>/dev/cu.usbmodem1411</pre> in MacOSX, <pre>\\\\.\\COM3</pre> in Windows.
     </li>
+	<li><b><i class="icon-bookmark"></i> Network Key:</b>
+	 The network key (secret) is optional, string of 16 bytes in hex format, separated by commas, "0xCA,0xFE,0xBA,0xBE,.... " to use with secure zwave devices.
+	</li>
     <li><b><i class="icon-bookmark"></i> Driver attempts:</b>
       How many attempts should OpenZWave make to set up the controller.
     </li>
@@ -123,6 +130,7 @@
       driverattempts: {value: 3,  required:true, validate:RED.validators.number()},
       pollinterval:   {value: 10000, required:true, validate:RED.validators.number()},
       allowunreadyupdates: {value: false, required:true},
+	  networkkey: {value: "",required: false},
       logging: {value: true, required:false}
     },
     label: function() {
