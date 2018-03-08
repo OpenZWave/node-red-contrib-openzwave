@@ -47,6 +47,7 @@ module.exports = function(RED) {
   var ozwConfig = {};
   var ozwDriver = null;
   var ozwConnected = false;
+  var ozwBoundEvents = false;
   var driverReadyStatus = false;
   var allowunreadyupdates = false;
   var logging = "minimal";
@@ -358,11 +359,14 @@ module.exports = function(RED) {
         DriverMaxAttempts: cfg.driverattempts,
 		NetworkKey: cfg.networkkey||""
       });
+    }
+    if (!ozwBoundEvents) {
       /* =========== bind to low-level OpenZWave events ============== */
       Object.keys(ozwEvents).forEach(function(evt) {
-        log('full', node.name + ' addListener ' + evt);
-        ozwDriver.on(evt, ozwEvents[evt]);
+          log('full', node.name + ' addListener ' + evt);
+          ozwDriver.on(evt, ozwEvents[evt]);
       });
+      ozwBoundEvents = true;
     }
 
     /* =============== Node-Red events ================== */
@@ -371,7 +375,10 @@ module.exports = function(RED) {
       // write out zwcfg_homeid.xml to disk
       ozwDriver.writeConfig();
       // controller should also unbind from the C++ addon
-      if (ozwDriver) ozwDriver.removeAllListeners();
+      if (ozwDriver) {
+        ozwDriver.removeAllListeners();
+        ozwBoundEvents = false;
+      }
     });
 
     zwsubscribe(node, 'driver failed', function(event, data) {
