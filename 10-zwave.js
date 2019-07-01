@@ -106,6 +106,7 @@ module.exports = function(RED) {
         switch(event) {
           case 'node event':
           case 'node ready':
+          case 'node removed':
             status.text = util.format('node %j: %s', arghash.nodeid, event);
             break;
           case 'value changed':
@@ -168,6 +169,24 @@ module.exports = function(RED) {
       ready: false,
     };
     zwcallback('node added', {
+      "nodeid": nodeid
+    });
+  }
+
+  function nodeRemoved(nodeid) {
+    RED.settings.functionGlobalContext.openzwaveNodes[nodeid] = {
+      manufacturer: '',
+      manufacturerid: '',
+      product: '',
+      producttype: '',
+      productid: '',
+      type: '',
+      name: '',
+      loc: '',
+      classes: {},
+      ready: false,
+    };
+    zwcallback('node removed', {
       "nodeid": nodeid
     });
   }
@@ -337,7 +356,8 @@ module.exports = function(RED) {
     'value removed': valueRemoved,
     'notification': notification,
     'scan complete': scanComplete,
-    'controller command': controllerCommand
+    'controller command': controllerCommand,
+    'node removed': nodeRemoved
   };
 
   // ==========================
