@@ -506,12 +506,12 @@ module.exports = function(RED) {
         // setValue: for everything else
         case /setValue/.test(msg.topic):
           log('full', util.format("ZWaveOut.setValue payload: %j", payload));
-          ozwDriver.setValue(
-            payload.nodeid, (payload.cmdclass || 37), // default cmdclass: on-off
-            (payload.instance || 1), // default instance
-            (payload.cmdidx || 0), // default cmd index
-            payload.value
-          );
+          ozwDriver.setValue( {
+            node_id:   payload.nodeid,
+            class_id: (payload.cmdclass || 37), // default cmdclass: on-off
+            instance: (payload.instance || 1), // default instance
+            index:    (payload.cmdidx || 0), // default cmd index
+          }, payload.value );
           break;
           /* EXPERIMENTAL: send basically every available command down
            * to OpenZWave, just name the function in the message topic
