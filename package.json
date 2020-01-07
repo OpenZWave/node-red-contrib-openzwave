@@ -1,10 +1,10 @@
 {
   "name": "node-red-contrib-openzwave",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "ZWave for node-red through OpenZWave, the open source ZWave library",
   "dependencies": {
     "openzwave-shared": ">= 1.2.7",
-    "getmac": ">= 1.0.0"
+    "getmac": "2.x"
   },
   "repository": {
     "type": "git",
