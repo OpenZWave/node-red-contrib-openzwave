@@ -26,11 +26,16 @@ var HOMENAME = "_homename_";
 var ozwsharedpath = path.dirname(path.dirname(require.resolve('openzwave-shared')));
 var ozwsharedpackage = JSON.parse(fs.readFileSync(ozwsharedpath+"/package.json"));
 var thispackage = JSON.parse(fs.readFileSync(__dirname+'/package.json'));
+var gm = require('getmac');
 
-require('getmac').getMac(function(err, macAddress) {
-  if (err) throw err;
-  UUIDPREFIX = macAddress.replace(/:/gi, '');
-});
+if (typeof gm.default=='function') {
+  UUIDPREFIX = gm.default().replace(/:/gi, );
+} else {
+  gm.getMac(function(err, macAddress) {
+    if (err) throw err;
+    UUIDPREFIX = macAddress.replace(/:/gi, '');
+  });
+}
 
 module.exports = function(RED) {
 
