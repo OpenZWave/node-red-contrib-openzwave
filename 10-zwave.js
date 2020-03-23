@@ -157,7 +157,7 @@ module.exports = function(RED) {
 
   function driverFailed() {
     zwcallback('driver failed', ozwConfig);
-    process.exit();
+    log('off', 'driver failed, check your settings');
   }
 
   function nodeAdded(nodeid) {
