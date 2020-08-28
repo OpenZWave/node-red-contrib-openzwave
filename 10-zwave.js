@@ -20,22 +20,13 @@
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
-var UUIDPREFIX = "_macaddr_";
+var UUIDPREFIX;
 var HOMENAME = "_homename_";
 
 var ozwsharedpath = path.dirname(path.dirname(require.resolve('openzwave-shared')));
 var ozwsharedpackage = JSON.parse(fs.readFileSync(ozwsharedpath+"/package.json"));
 var thispackage = JSON.parse(fs.readFileSync(__dirname+'/package.json'));
 var gm = require('getmac');
-
-if (typeof gm.default=='function') {
-  UUIDPREFIX = gm.default().replace(/:/gi, );
-} else {
-  gm.getMac(function(err, macAddress) {
-    if (err) throw err;
-    UUIDPREFIX = macAddress.replace(/:/gi, '');
-  });
-}
 
 module.exports = function(RED) {
 
@@ -92,6 +83,19 @@ module.exports = function(RED) {
    **/
   function zwcallback(event, arghash) {
     log('full', util.format("%s, args: %j", event, arghash));
+    // lazy initialization of UUIDPREFIX to work around
+    // getmac race condition at start up
+    if (UUIDPREFIX === undefined) {
+      if (typeof gm.default=='function') {
+        UUIDPREFIX = gm.default().replace(/:/gi, );
+      } else {
+        gm.getMac(function(err, macAddress) {
+          // TODO: shouldn't call throw here
+          if (err) throw err;
+          UUIDPREFIX = macAddress.replace(/:/gi, '');
+        });
+      }
+    }
     // Add uuid
     if (arghash.nodeid !== undefined && HOMENAME !== undefined)
       arghash.uuid = UUIDPREFIX + '-' +
