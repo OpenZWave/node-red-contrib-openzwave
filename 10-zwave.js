@@ -490,62 +490,75 @@ module.exports = function(RED) {
 
     /* =============== Node-Red events ================== */
     //
-    this.on("input", function(msg) {
-      log('full', util.format("input: %j", msg));
-      var payload;
+    this.on("input", function(msg, send, done) {
       try {
-        payload = (typeof(msg.payload) === "string") ?
-          JSON.parse(msg.payload) : msg.payload;
-      } catch (err) {
-        node.error(node.name + ': illegal msg.payload! (' + err + ')');
-        return;
-      }
-      switch (true) {
-        // switch On/Off: for basic single-instance switches and dimmers
-        case /switchOn/.test(msg.topic):
-          ozwDriver.setValue(payload.nodeid, 37, 1, 0, true);
-          break;
-        case /switchOff/.test(msg.topic):
-          ozwDriver.setValue(payload.nodeid, 37, 1, 0, false);
-          break;
-        // setLevel: for dimmers
-        case /setLevel/.test(msg.topic):
-          ozwDriver.setValue(payload.nodeid, 38, 1, 0, payload.value);
-          break;
-        // setValue: for everything else
-        case /setValue/.test(msg.topic):
-          log('full', util.format("ZWaveOut.setValue payload: %j", payload));
-          ozwDriver.setValue( {
-            node_id:   payload.nodeid,
-            class_id: (payload.cmdclass || 37), // default cmdclass: on-off
-            instance: (payload.instance || 1), // default instance
-            index:    (payload.cmdidx || 0), // default cmd index
-          }, payload.value );
-          break;
-          /* EXPERIMENTAL: send basically every available command down
-           * to OpenZWave, just name the function in the message topic
-           * and pass in the arguments as "payload.args" as an array:
-           * {"topic": "someOpenZWaveCommand", "payload": {"args": [1, 2, 3]}}
-           * If the command needs the HomeID as the 1st arg, use "payload.prependHomeId"
-           * */
-        default:
-          if (msg.topic && typeof ozwDriver[msg.topic] === 'function' &&
-            payload) {
-            var args = payload.args || [];
-            if (payload.prependHomeId) args.unshift(ozwConfig.homeid);
-            log('minimal', 'attempting direct API call to ' + msg.topic + '()');
-            try {
-              var result = ozwDriver[msg.topic].apply(ozwDriver, args);
-              log('minimal', 'direct API call success, result=' + JSON.stringify(result));
-              if (typeof result != 'undefined') {
-                msg.payload.result = result;
-                // send off the direct API call's result to the output
-                node.send(msg);
-              }
-            } catch (err) {
-              log('minimal', 'direct API call to ' + msg.topic + ' failed: ' + err, 'error');
-            }
+        send = send || function() { node.send.apply(node,arguments) }
+        log('full', util.format("input: %j", msg));
+        var payload;
+        try {
+          payload = (typeof(msg.payload) === "string") ?
+            JSON.parse(msg.payload) : msg.payload;
+        } catch (err) {
+          if (done) {
+              done(err);
+              // prevent calling done() again in finally block
+              done = null;
+          } else {
+            node.error(node.name + ': illegal msg.payload! (' + err + ')');
           }
+          return;
+        }
+        switch (true) {
+          // switch On/Off: for basic single-instance switches and dimmers
+          case /switchOn/.test(msg.topic):
+            ozwDriver.setValue(payload.nodeid, 37, 1, 0, true);
+            break;
+          case /switchOff/.test(msg.topic):
+            ozwDriver.setValue(payload.nodeid, 37, 1, 0, false);
+            break;
+          // setLevel: for dimmers
+          case /setLevel/.test(msg.topic):
+            ozwDriver.setValue(payload.nodeid, 38, 1, 0, payload.value);
+            break;
+          // setValue: for everything else
+          case /setValue/.test(msg.topic):
+            log('full', util.format("ZWaveOut.setValue payload: %j", payload));
+            ozwDriver.setValue( {
+              node_id:   payload.nodeid,
+              class_id: (payload.cmdclass || 37), // default cmdclass: on-off
+              instance: (payload.instance || 1), // default instance
+              index:    (payload.cmdidx || 0), // default cmd index
+            }, payload.value );
+            break;
+            /* EXPERIMENTAL: send basically every available command down
+             * to OpenZWave, just name the function in the message topic
+             * and pass in the arguments as "payload.args" as an array:
+             * {"topic": "someOpenZWaveCommand", "payload": {"args": [1, 2, 3]}}
+             * If the command needs the HomeID as the 1st arg, use "payload.prependHomeId"
+             * */
+          default:
+            if (msg.topic && typeof ozwDriver[msg.topic] === 'function' &&
+              payload) {
+              var args = payload.args || [];
+              if (payload.prependHomeId) args.unshift(ozwConfig.homeid);
+              log('minimal', 'attempting direct API call to ' + msg.topic + '()');
+              try {
+                var result = ozwDriver[msg.topic].apply(ozwDriver, args);
+                log('minimal', 'direct API call success, result=' + JSON.stringify(result));
+                if (typeof result != 'undefined') {
+                  msg.payload.result = result;
+                  // send off the direct API call's result to the output
+                  send(msg);
+                }
+              } catch (err) {
+                log('minimal', 'direct API call to ' + msg.topic + ' failed: ' + err, 'error');
+              }
+            }
+        }
+      } finally {
+        if (done) {
+            done();
+        }
       }
     });
 
