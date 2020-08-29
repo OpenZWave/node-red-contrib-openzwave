@@ -12,7 +12,8 @@
   },
   "author": "Elias Karakoulakis <elias.karakoulakis@gmail.com>",
   "contributors": [
-    "dionmes"
+    "dionmes",
+    "Kirk Rader"
   ],
   "keywords": [
     "node-red",
