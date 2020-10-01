@@ -53,7 +53,7 @@ The value for `userDir` can be overridden in the settings.js file used by Node-R
 
 ##### - **zwave-controller**
 
-This is a [config node](http://nodered.org/docs/creating-nodes/config-nodes) whose job is to hold the necessary data for initializing OpenZWave and act as the encapsulator for access to the OpenZWave API. When you add a 'zwave-in' or 'zwave-out' into your flows, a singleton instance of this node is created in the background, and you need to click on the 'controller' icon, in order  to *configure where your ZWave USB controller is connected to* (for example `/dev/ttyUSB0` in Linux) and define a logging level.
+This is a [config node](http://nodered.org/docs/creating-nodes/config-nodes) whose job is to hold the necessary data for initializing OpenZWave and act as the encapsulator for access to the OpenZWave API. When you add a 'zwave-in' or 'zwave-out' into your flows, a singleton instance of this node is created in the background, and you need to click on the 'controller' icon, in order  to *configure where your ZWave USB controller is connected to* (for example `/dev/ttyUSB0` in Linux) and define a logging level. The network key must not contain spaces if utilized. 
 
 
 ##### - **zwave-in**
